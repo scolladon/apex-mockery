@@ -110,7 +110,6 @@ global class MethodSpy {
         return true;
       }
     }
-
     return this.defaultBehaviorManager.hasConfiguredOnceBehavior() || this.defaultBehaviorManager.hasConfiguredGeneralBehavior();
   }
 
