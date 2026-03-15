@@ -335,11 +335,17 @@ global class MethodSpy {
     }
 
     public void configure(final SpyBehavior behavior, final Integer times) {
+      if (behavior == null) {
+        throw new IllegalArgumentException('SpyBehavior must not be null');
+      }
+      if (times < 0) {
+        throw new IllegalArgumentException('times must be >= 0, got: ' + times);
+      }
       if (times > 0) {
         for (Integer i = 0; i < times; ++i) {
           this.onceBehaviors.add(behavior);
         }
-      } else if (times == 0) {
+      } else {
         this.generalBehavior = behavior;
       }
     }

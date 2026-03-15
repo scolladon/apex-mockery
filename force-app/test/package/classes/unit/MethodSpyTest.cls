@@ -715,6 +715,34 @@ private class MethodSpyTest {
     }
   }
 
+  @IsTest
+  static void givenSpy_whenBehavesWithNullImpl_throwsIllegalArgument() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+
+    // Act & Assert
+    try {
+      sut.behaves(null);
+      Assert.fail('Expected IllegalArgumentException');
+    } catch (IllegalArgumentException ex) {
+      Assert.isTrue(ex.getMessage().contains('behavior'), 'Message should mention behavior');
+    }
+  }
+
+  @IsTest
+  static void givenSpy_whenReturnsWithNegativeTimes_throwsIllegalArgument() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+
+    // Act & Assert
+    try {
+      sut.returns('value', -1);
+      Assert.fail('Expected IllegalArgumentException');
+    } catch (IllegalArgumentException ex) {
+      Assert.isTrue(ex.getMessage().contains('times'), 'Message should mention times');
+    }
+  }
+
   class NotSerializableCustomApex {
     private Http notSerializableAttribute;
 
