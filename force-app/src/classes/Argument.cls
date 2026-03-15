@@ -228,6 +228,16 @@ global class Argument {
   }
 
   private static String getTypeName(final Object callArgument) {
+    if (callArgument == null) {
+      return null;
+    }
+    // Apex does not expose Object.getClass() or any reflection API to get
+    // the runtime type of an arbitrary Object. The only available technique
+    // is to attempt a cast to a known type and parse the resulting
+    // TypeException message, which Salesforce embeds the actual type name in:
+    //   "Invalid conversion from runtime type <ActualType> to Date"
+    // This relies on an undocumented message format. If Salesforce changes it,
+    // this method will silently return 'Date' for all non-Date, non-null types.
     String result = 'Date';
     try {
       Date typeCheck = (Date) callArgument;
