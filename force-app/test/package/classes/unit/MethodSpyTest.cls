@@ -251,6 +251,7 @@ private class MethodSpyTest {
     Assert.areEqual('Opportunity result', secondCallResult);
   }
 
+  @IsTest
   static void givenSpy_whenCalledWithDifferentArgumentType_itCallsTheSameSpy() {
     // Arrange
     MethodSpy sut = new MethodSpy('methodName');
