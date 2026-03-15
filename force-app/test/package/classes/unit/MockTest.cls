@@ -132,6 +132,7 @@ private class MockTest {
       // Assert
       Assert.fail('Expected exception was not thrown');
     } catch (Exception ex) {
+      Assert.isInstanceOfType(ex, NullPointerException.class, 'Expected NullPointerException');
       Assert.areNotEqual(null, ex);
     }
   }
