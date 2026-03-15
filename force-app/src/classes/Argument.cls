@@ -164,7 +164,7 @@ global class Argument {
       this.jsonValue = JSON.serialize(callArgumentToMatch);
     }
 
-    public boolean matches(final Object callArgument) {
+    public Boolean matches(final Object callArgument) {
       return String.valueOf(this.jsonValue).equals(String.valueOf(JSON.serialize(callArgument)));
     }
 
@@ -196,7 +196,7 @@ global class Argument {
       this.typeNameToMatch = callArgumentToMatch.getName();
     }
 
-    public boolean matches(final Object callArgument) {
+    public Boolean matches(final Object callArgument) {
       String typeName = Argument.getTypeName(callArgument);
       if (this.typeNameToMatch == typeName) {
         return true;
