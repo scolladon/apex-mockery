@@ -136,4 +136,12 @@ private class MockTest {
       Assert.areNotEqual(null, ex);
     }
   }
+
+  @IsTest
+  static void givenMock_whenAccessingStub_stubIsNotNull() {
+    // Arrange & Act
+    Mock sut = Mock.forType(DummyInterface.class);
+    // Assert
+    Assert.isNotNull(sut.stub, 'stub should be set after construction');
+  }
 }
