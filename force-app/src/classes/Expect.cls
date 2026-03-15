@@ -107,13 +107,8 @@ global class Expect {
     private MethodSpy spy;
     private Asserter asserter;
 
-    private DefaultMethodSpyExpectable(MethodSpy spy) {
+    private DefaultMethodSpyExpectable(final MethodSpy spy, final Asserter asserter) {
       this.spy = spy;
-      this.asserter = METHOD_SPY_ASSERTER;
-    }
-
-    private DefaultMethodSpyExpectable(MethodSpy spy, Asserter asserter) {
-      this(spy);
       this.asserter = asserter;
     }
 
@@ -204,13 +199,13 @@ global class Expect {
   }
 
   private class ErrorMessageRow {
-    protected String message;
-    protected Boolean tabbed;
+    public final String message;
+    public final Boolean tabbed;
 
-    ErrorMessageRow(String message) {
+    ErrorMessageRow(final String message) {
       this(message, false);
     }
-    ErrorMessageRow(String message, Boolean tabbed) {
+    ErrorMessageRow(final String message, final Boolean tabbed) {
       this.message = message;
       this.tabbed = tabbed;
     }
