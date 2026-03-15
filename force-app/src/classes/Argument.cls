@@ -169,10 +169,12 @@ global class Argument {
     private String jsonValue;
 
     public JSONMatchable(final Object callArgumentToMatch) {
+      // Serialized once at configuration time — the expected value never changes.
       this.jsonValue = JSON.serialize(callArgumentToMatch);
     }
 
     public Boolean matches(final Object callArgument) {
+      // The call argument must be serialized fresh each time — it varies per invocation.
       return String.valueOf(this.jsonValue).equals(String.valueOf(JSON.serialize(callArgument)));
     }
 
