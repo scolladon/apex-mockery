@@ -54,6 +54,10 @@ global class Argument {
     return new List<Argument.Matchable>();
   }
 
+  // SYNC POINT: The 1-5 argument overloads below are duplicated in:
+  //   - MethodSpy.whenCalledWith()  (MethodSpy.cls)
+  //   - Expect.hasBeenCalledWith()  (Expect.cls)
+  // If you add a 6th overload here, add it in the other two locations too.
   global static List<Argument.Matchable> of(final Object arg) {
     return Argument.ofList(new List<Object>{ arg });
   }

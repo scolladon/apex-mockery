@@ -30,6 +30,10 @@ global class Expect {
      * @param param1 args that should match one call parameters
      * @see          Arguments
      */
+    // SYNC POINT: The 1-5 argument overloads below are duplicated in:
+    //   - Argument.of()               (Argument.cls)
+    //   - MethodSpy.whenCalledWith()  (MethodSpy.cls)
+    // If you add a 6th overload here, add it in the other two locations too.
     void hasBeenCalledWith();
     void hasBeenCalledWith(final Object param1);
     void hasBeenCalledWith(final Object param1, final Object param2);
@@ -124,6 +128,10 @@ global class Expect {
       this.asserter.isTrue(this.spy.callLog.size() == count, buildErrorMessage(this.spy, ErrorMessageType.NOT_CALLED_TIMES, count));
     }
 
+    // SYNC POINT: The 1-5 argument overloads below are duplicated in:
+    //   - Argument.of()               (Argument.cls)
+    //   - MethodSpy.whenCalledWith()  (MethodSpy.cls)
+    // If you add a 6th overload here, add it in the other two locations too.
     public void hasBeenCalledWith() {
       this.hasBeenCalledWithArguments(Argument.empty());
     }

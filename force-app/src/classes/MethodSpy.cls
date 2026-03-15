@@ -162,6 +162,10 @@ global class MethodSpy {
     return this.whenCalledWithArguments(Argument.empty());
   }
 
+  // SYNC POINT: The 1-5 argument overloads below are duplicated in:
+  //   - Argument.of()              (Argument.cls)
+  //   - Expect.hasBeenCalledWith() (Expect.cls)
+  // If you add a 6th overload here, add it in the other two locations too.
   global MethodSpyCall whenCalledWith(final Object arg) {
     return this.whenCalledWithArguments((arg instanceof List<Argument.Matchable>) ? (List<Argument.Matchable>) arg : Argument.of(arg));
   }
