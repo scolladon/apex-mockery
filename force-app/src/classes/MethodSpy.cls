@@ -56,27 +56,52 @@ global class MethodSpy {
       return null;
     }
 
+    final DispatchResult dispatched = this.dispatchBehavior(args);
+
+    if (dispatched.matched) {
+      return dispatched.value;
+    }
+
+    throw new ConfigurationExceptionBuilder().withMethodSpy(this).withCallTypes(paramTypes).withCallParamNames(paramNames).withCallArguments(args).build();
+  }
+
+  private DispatchResult dispatchBehavior(final List<Object> args) {
     for (MatchingParamsMethodSpyConfig matchingConfig : this.matchingBehaviorManagers) {
       if (matchingConfig.matchesOnce(args)) {
-        return matchingConfig.pollSpyBehavior(args);
+        return new DispatchResult(matchingConfig.pollSpyBehavior(args));
       }
     }
 
     if (this.defaultBehaviorManager.hasConfiguredOnceBehavior()) {
-      return this.defaultBehaviorManager.pollSpyBehavior(args);
+      return new DispatchResult(this.defaultBehaviorManager.pollSpyBehavior(args));
     }
 
     for (MatchingParamsMethodSpyConfig matchingConfig : this.matchingBehaviorManagers) {
       if (matchingConfig.matches(args)) {
-        return matchingConfig.pollSpyBehavior(args);
+        return new DispatchResult(matchingConfig.pollSpyBehavior(args));
       }
     }
 
     if (this.defaultBehaviorManager.hasConfiguredGeneralBehavior()) {
-      return this.defaultBehaviorManager.pollSpyBehavior(args);
+      return new DispatchResult(this.defaultBehaviorManager.pollSpyBehavior(args));
     }
 
-    throw new ConfigurationExceptionBuilder().withMethodSpy(this).withCallTypes(paramTypes).withCallParamNames(paramNames).withCallArguments(args).build();
+    return new DispatchResult();
+  }
+
+  private class DispatchResult {
+    public final Boolean matched;
+    public final Object value;
+
+    public DispatchResult() {
+      this.matched = false;
+      this.value = null;
+    }
+
+    public DispatchResult(final Object value) {
+      this.matched = true;
+      this.value = value;
+    }
   }
 
   private Boolean isConfigured() {
