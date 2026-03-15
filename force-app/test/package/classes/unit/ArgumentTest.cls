@@ -659,7 +659,7 @@ public class ArgumentTest {
   }
 
   @IsTest
-  static void areListsEqual_whenCalledWithSameList_returnsFalse() {
+  static void areListsEqual_whenCalledWithEquivalentList_returnsTrue() {
     // Arrange
     final List<Argument.Matchable> list1 = new List<Argument.Matchable>{
       Argument.any(),
