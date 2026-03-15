@@ -114,6 +114,14 @@ global class MethodSpy {
     return this.defaultBehaviorManager.hasConfiguredOnceBehavior() || this.defaultBehaviorManager.hasConfiguredGeneralBehavior();
   }
 
+  private String describeConfigurations() {
+    final List<String> descriptions = new List<String>();
+    for (MethodSpyCall methodCall : this.matchingBehaviorManagers) {
+      descriptions.add(methodCall.toString());
+    }
+    return String.join(descriptions, '\n\t');
+  }
+
   global void behaves(final SpyBehavior impl) {
     this.defaultBehaviorManager.configure(impl);
   }
@@ -330,11 +338,6 @@ global class MethodSpy {
     }
 
     public ConfigurationException build() {
-      List<String> errorMessages = new List<String>();
-      for (MethodSpyCall methodCall : this.spy.matchingBehaviorManagers) {
-        errorMessages.add(methodCall.toString());
-      }
-
       List<String> callArgumentsAsString = new List<String>();
       for (Integer i = 0; i < this.callArguments.size(); i++) {
         callArgumentsAsString.add(this.callTypes[i] + ' ' + this.callParamNames[i] + '[' + this.callArguments[i] + ']');
@@ -346,7 +349,7 @@ global class MethodSpy {
           String.join(callArgumentsAsString, ', ') +
           ')' +
           '\nHere are the configured stubs:\n\t' +
-          String.join(errorMessages, '\n\t')
+          this.spy.describeConfigurations()
       );
     }
   }
