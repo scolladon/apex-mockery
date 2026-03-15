@@ -143,11 +143,11 @@ global class MethodSpy {
   }
 
   global void returns(Object value, final Integer times) {
-    this.defaultBehaviorManager.configure(new ConfiguredValueBehaviorOnce(value), times);
+    this.defaultBehaviorManager.configure(new ConfiguredValueBehavior(value, '.thenReturnOnce'), times);
   }
 
   global void throwsException(Exception exceptionToThrowTimes, final Integer times) {
-    this.defaultBehaviorManager.configure(new ConfiguredExceptionBehaviorOnce(exceptionToThrowTimes), times);
+    this.defaultBehaviorManager.configure(new ConfiguredExceptionBehavior(exceptionToThrowTimes, '.thenThrowOnce'), times);
   }
 
   global MethodSpyCall whenCalledWith() {
@@ -273,12 +273,12 @@ global class MethodSpy {
     }
 
     public MethodSpyCall thenReturn(final Object value, final Integer times) {
-      this.behaviorManager.configure(new ConfiguredValueBehaviorOnce(value), times);
+      this.behaviorManager.configure(new ConfiguredValueBehavior(value, '.thenReturnOnce'), times);
       return this;
     }
 
     public MethodSpyCall thenThrow(final Exception exceptionToThrowTimes, final Integer times) {
-      this.behaviorManager.configure(new ConfiguredExceptionBehaviorOnce(exceptionToThrowTimes), times);
+      this.behaviorManager.configure(new ConfiguredExceptionBehavior(exceptionToThrowTimes, '.thenThrowOnce'), times);
       return this;
     }
 
@@ -401,51 +401,47 @@ global class MethodSpy {
     Object execute(List<Object> params);
   }
 
-  private virtual class ConfiguredValueBehavior implements SpyBehavior {
+  private class ConfiguredValueBehavior implements SpyBehavior {
     public final Object value;
+    private final String label;
+
     public ConfiguredValueBehavior(final Object value) {
+      this(value, '.thenReturn');
+    }
+
+    public ConfiguredValueBehavior(final Object value, final String label) {
       this.value = value;
+      this.label = label;
     }
 
     public Object execute(final List<Object> params) {
       return this.value;
     }
 
-    public override virtual String toString() {
-      return '.thenReturn(' + this.value + ')';
-    }
-  }
-
-  private class ConfiguredValueBehaviorOnce extends ConfiguredValueBehavior {
-    public ConfiguredValueBehaviorOnce(final Object value) {
-      super(value);
-    }
     public override String toString() {
-      return '.thenReturnOnce(' + this.value + ')';
+      return this.label + '(' + this.value + ')';
     }
   }
 
-  private virtual class ConfiguredExceptionBehavior implements SpyBehavior {
+  private class ConfiguredExceptionBehavior implements SpyBehavior {
     public final Exception error;
+    private final String label;
+
     public ConfiguredExceptionBehavior(final Exception error) {
+      this(error, '.thenThrow');
+    }
+
+    public ConfiguredExceptionBehavior(final Exception error, final String label) {
       this.error = error;
+      this.label = label;
     }
 
     public Object execute(final List<Object> params) {
       throw (Exception) this.error;
     }
 
-    public override virtual String toString() {
-      return '.thenThrow(' + this.error + ')';
-    }
-  }
-
-  private class ConfiguredExceptionBehaviorOnce extends ConfiguredExceptionBehavior {
-    public ConfiguredExceptionBehaviorOnce(final Exception error) {
-      super(error);
-    }
     public override String toString() {
-      return '.thenThrowOnce(' + this.error + ')';
+      return this.label + '(' + this.error + ')';
     }
   }
 
