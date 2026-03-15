@@ -60,6 +60,4 @@ Assertion DSL. `Expect.that(spy)` returns a `DefaultMethodSpyExpectable` that re
 
 **Method spying is name-only.** The Apex Stub API does not distinguish between overloaded methods at the interception level — all overloads of the same method name share a single spy. Argument matchers can be used to differentiate behavior by call signature, but the call log aggregates all overloads together.
 
-**`Argument.ConfigurationException` is deprecated.** This exception class is never thrown by the library. It exists only for backward compatibility with code that may reference it. It will be removed in 3.0.0. Code that catches stub-configuration errors should catch `MethodSpy.ConfigurationException` instead.
-
 **`getTypeName()` relies on undocumented behavior.** The type-detection technique in `Argument.getTypeName()` parses the message of a `System.TypeException`. If Salesforce changes the message format, the method will silently return `'Date'` for all non-`Date`, non-`null` values, breaking `Argument.ofType()` matching.

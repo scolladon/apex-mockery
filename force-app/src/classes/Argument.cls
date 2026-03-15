@@ -21,13 +21,6 @@ global class Argument {
     Boolean matches(Object callArgument);
   }
 
-  /**
-   * @deprecated Never thrown by this library. Will be removed in 3.0.0.
-   * Catch MethodSpy.ConfigurationException instead.
-   */
-  global class ConfigurationException extends Exception {
-  }
-
   private Argument() {
   }
 
