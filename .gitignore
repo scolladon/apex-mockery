@@ -44,5 +44,11 @@ $RECYCLE.BIN/
 # Local environment variables
 .env
 
+# Local technical backlog
+BACKLOG.md
+
+# Git worktrees
+.worktrees/
+
 # SFDX
 tests/
