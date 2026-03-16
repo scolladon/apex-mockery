@@ -201,6 +201,9 @@ global class Argument {
 
     public Boolean matches(final Object callArgument) {
       String typeName = Argument.getTypeName(callArgument);
+      if (typeName == null) {
+        return false;
+      }
       if (this.typeNameToMatch == typeName) {
         return true;
       }
@@ -249,6 +252,9 @@ global class Argument {
 
   public static Type getType(final Object callArgument) {
     final String typeName = getTypeName(callArgument);
+    if (typeName == null) {
+      return null;
+    }
     return Type.forName(typeName);
   }
 

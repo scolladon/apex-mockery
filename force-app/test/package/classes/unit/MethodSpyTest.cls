@@ -725,7 +725,7 @@ private class MethodSpyTest {
       sut.behaves(null);
       Assert.fail('Expected IllegalArgumentException');
     } catch (IllegalArgumentException ex) {
-      Assert.isTrue(ex.getMessage().contains('behavior'), 'Message should mention behavior');
+      Assert.isTrue(ex.getMessage().contains('SpyBehavior'), 'Message should mention SpyBehavior');
     }
   }
 
