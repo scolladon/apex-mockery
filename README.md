@@ -372,12 +372,6 @@ Object result = myTypeStub.myMethod('nothing', 10);
 // Assert
 Assert.areEqual(new Account(Name='Test Once'), result);
 
-// Act
-Object result = myTypeStub.myMethod('nothing', 10);
-
-// Assert
-Assert.areEqual(new Account(Name='Test'), result);
-
 for(Integer i = 0 ; i < 3 ; ++i) {
   // Act
   Object result = myTypeStub.myMethod('nothing', 10);
@@ -385,6 +379,12 @@ for(Integer i = 0 ; i < 3 ; ++i) {
   // Assert
   Assert.areEqual(new Account(Name='Test Times'), result);
 }
+
+// Act
+Object result = myTypeStub.myMethod('nothing', 10);
+
+// Assert
+Assert.areEqual(new Account(Name='Test'), result);
 
 // Act
 try {
@@ -419,20 +419,14 @@ for(Integer i = 0 ; i < 3 ; ++i) {
 }
 
 // Act
-Object result = myTypeStub.myMethod('nothing', 10);
-
-// Assert
-Assert.areEqual('Custom Behavior', result);
-
-// Act
-Object result = myTypeStub.myMethod('nothing', 10);
+Object result = myTypeStub.myMethod('value', -1);
 
 // Assert
 Assert.areEqual('Custom Behavior', result);
 
 for(Integer i = 0 ; i < 3 ; ++i) {
   // Act
-  Object result = myTypeStub.myMethod('nothing', 10);
+  Object result = myTypeStub.myMethod('value', -1);
 
   // Assert
   Assert.areEqual('Custom Behavior', result);
