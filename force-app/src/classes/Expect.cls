@@ -207,8 +207,8 @@ global class Expect {
   }
 
   private class ErrorMessageRow {
-    public final String message;
-    public final Boolean tabbed;
+    private final String message;
+    private final Boolean tabbed;
 
     ErrorMessageRow(final String message) {
       this(message, false);
