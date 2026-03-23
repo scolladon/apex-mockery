@@ -41,7 +41,7 @@ private class MethodSpyTest {
 
     // Assert
     Assert.areEqual('test', result);
-    Assert.areEqual(new List<Object>{ null }, sut.callLog.getLast());
+    Assert.areEqual(new List<Object>{ null }, sut.getLastArguments());
   }
 
   @IsTest
@@ -55,7 +55,7 @@ private class MethodSpyTest {
 
     // Assert
     Assert.areEqual('test', result);
-    Assert.areEqual(new List<Object>{ 'value' }, sut.callLog.getLast());
+    Assert.areEqual(new List<Object>{ 'value' }, sut.getLastArguments());
   }
 
   @IsTest
@@ -69,7 +69,7 @@ private class MethodSpyTest {
 
     // Assert
     Assert.areEqual('test', result);
-    Assert.areEqual(new List<Object>(), sut.callLog.getLast());
+    Assert.areEqual(new List<Object>(), sut.getLastArguments());
   }
 
   @IsTest
@@ -83,7 +83,7 @@ private class MethodSpyTest {
 
     // Assert
     Assert.areEqual('test', result);
-    Assert.areEqual(new List<Object>(), sut.callLog.getLast());
+    Assert.areEqual(new List<Object>(), sut.getLastArguments());
   }
 
   @IsTest
@@ -97,7 +97,7 @@ private class MethodSpyTest {
 
     // Assert
     Assert.areEqual('test', result);
-    Assert.areEqual(new List<Object>{ '2', 'args' }, sut.callLog.getLast());
+    Assert.areEqual(new List<Object>{ '2', 'args' }, sut.getLastArguments());
   }
 
   @IsTest
@@ -115,7 +115,7 @@ private class MethodSpyTest {
 
     // Assert
     Assert.areEqual('test', result);
-    Assert.areEqual(new List<Object>{ '3', 'args', 'test' }, sut.callLog.getLast());
+    Assert.areEqual(new List<Object>{ '3', 'args', 'test' }, sut.getLastArguments());
   }
 
   @IsTest
@@ -133,7 +133,7 @@ private class MethodSpyTest {
 
     // Assert
     Assert.areEqual('test', result);
-    Assert.areEqual(new List<Object>{ 'test', 'with', '4', 'args' }, sut.callLog.getLast());
+    Assert.areEqual(new List<Object>{ 'test', 'with', '4', 'args' }, sut.getLastArguments());
   }
 
   @IsTest
@@ -151,7 +151,7 @@ private class MethodSpyTest {
 
     // Assert
     Assert.areEqual('test', result);
-    Assert.areEqual(new List<Object>{ 'another', 'test', 'with', '5', 'args' }, sut.callLog.getLast());
+    Assert.areEqual(new List<Object>{ 'another', 'test', 'with', '5', 'args' }, sut.getLastArguments());
   }
 
   @IsTest
@@ -168,7 +168,7 @@ private class MethodSpyTest {
     );
 
     // Assert
-    Assert.areEqual(new List<Object>{ 'param', new Account(Name = 'Test'), true }, sut.callLog.getLast());
+    Assert.areEqual(new List<Object>{ 'param', new Account(Name = 'Test'), true }, sut.getLastArguments());
   }
 
   @IsTest
@@ -188,9 +188,9 @@ private class MethodSpyTest {
       Assert.isInstanceOfType(ex, MethodSpy.ConfigurationException.class);
       Assert.areNotEqual(
         new List<Object>{ 'param', Argument.equals('otherParam'), Argument.jsonEquals(new Account(Name = 'Test')), Argument.any(), Argument.ofType('Integer') },
-        sut.callLog.getLast()
+        sut.getLastArguments()
       );
-      Assert.areEqual(new List<Object>{ 'param' }, sut.callLog.getLast());
+      Assert.areEqual(new List<Object>{ 'param' }, sut.getLastArguments());
     }
   }
 
@@ -208,8 +208,8 @@ private class MethodSpyTest {
       Assert.fail('it shoud not reach this line');
     } catch (Exception ex) {
       Assert.isInstanceOfType(ex, MethodSpy.ConfigurationException.class);
-      Assert.areNotEqual(new List<Object>{ 'param', new Account(Name = 'Test') }, sut.callLog.getLast());
-      Assert.areEqual(new List<Object>{ new Opportunity() }, sut.callLog.getLast());
+      Assert.areNotEqual(new List<Object>{ 'param', new Account(Name = 'Test') }, sut.getLastArguments());
+      Assert.areEqual(new List<Object>{ new Opportunity() }, sut.getLastArguments());
     }
   }
 
@@ -229,7 +229,7 @@ private class MethodSpyTest {
 
     // Assert
     Assert.areEqual('Expected Result', result);
-    Assert.areEqual(new List<Object>{ new List<String>{ 'test' }, new Account(Name = 'random'), true }, sut.callLog.getLast());
+    Assert.areEqual(new List<Object>{ new List<String>{ 'test' }, new Account(Name = 'random'), true }, sut.getLastArguments());
   }
 
   @IsTest
@@ -244,10 +244,10 @@ private class MethodSpyTest {
 
     // Assert
     Assert.areEqual('Account result', firstCallResult);
-    Assert.areEqual(new List<Object>{ new Account() }, sut.callLog.getLast());
+    Assert.areEqual(new List<Object>{ new Account() }, sut.getLastArguments());
     Object secondCallResult = sut.call(new List<Type>{ Opportunity.class }, new List<String>{ 'oppy' }, new List<Object>{ new Opportunity() });
-    Assert.areEqual(new List<Object>{ new Account() }, sut.callLog.get(0));
-    Assert.areEqual(new List<Object>{ new Opportunity() }, sut.callLog.getLast());
+    Assert.areEqual(new List<Object>{ new Account() }, sut.getArguments(0));
+    Assert.areEqual(new List<Object>{ new Opportunity() }, sut.getLastArguments());
     Assert.areEqual('Opportunity result', secondCallResult);
   }
 
@@ -748,6 +748,149 @@ private class MethodSpyTest {
 
     public NotSerializableCustomApex() {
       this.notSerializableAttribute = new Http();
+    }
+  }
+
+  @IsTest
+  static void givenSpyNotCalled_getCallCount_returnsZero() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+
+    // Act & Assert
+    Assert.areEqual(0, sut.getCallCount());
+  }
+
+  @IsTest
+  static void givenSpyCalledTwice_getCallCount_returnsTwo() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+    sut.call(new List<Type>(), new List<String>(), new List<Object>());
+    sut.call(new List<Type>(), new List<String>(), new List<Object>());
+
+    // Act & Assert
+    Assert.areEqual(2, sut.getCallCount());
+  }
+
+  @IsTest
+  static void givenSpyCalled_getArguments_returnsArgsForThatCall() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+    sut.call(new List<Type>{ String.class }, new List<String>{ 'p' }, new List<Object>{ 'hello' });
+
+    // Act
+    List<Object> args = sut.getArguments(0);
+
+    // Assert
+    Assert.areEqual(1, args.size());
+    Assert.areEqual('hello', args[0]);
+  }
+
+  @IsTest
+  static void givenSpyCalled_getArguments_returnsDefensiveCopy() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+    sut.call(new List<Type>{ String.class }, new List<String>{ 'p' }, new List<Object>{ 'hello' });
+
+    // Act
+    List<Object> args = sut.getArguments(0);
+    args.add('mutated');
+
+    // Assert — internal call log not affected
+    Assert.areEqual(1, sut.getArguments(0).size());
+  }
+
+  @IsTest
+  static void givenSpyCalled_getArguments_withOutOfBoundsIndex_throwsIllegalArgumentException() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+
+    // Act & Assert
+    try {
+      sut.getArguments(0);
+      Assert.fail('Expected IllegalArgumentException');
+    } catch (IllegalArgumentException ex) {
+      Assert.isTrue(ex.getMessage().contains('callIndex'));
+    }
+  }
+
+  @IsTest
+  static void givenSpyCalled_getLastArguments_returnsLastCallArgs() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+    sut.call(new List<Type>{ String.class }, new List<String>{ 'p' }, new List<Object>{ 'first' });
+    sut.call(new List<Type>{ String.class }, new List<String>{ 'p' }, new List<Object>{ 'second' });
+
+    // Act
+    List<Object> args = sut.getLastArguments();
+
+    // Assert
+    Assert.areEqual('second', args[0]);
+  }
+
+  @IsTest
+  static void givenSpyCalled_getArgument_returnsSpecificArgByIndex() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+    sut.call(new List<Type>{ String.class, Integer.class }, new List<String>{ 'a', 'b' }, new List<Object>{ 'hello', 42 });
+
+    // Act & Assert
+    Assert.areEqual('hello', sut.getArgument(0, 0));
+    Assert.areEqual(42, sut.getArgument(0, 1));
+  }
+
+  @IsTest
+  static void givenSpyCalled_getLastArgument_returnsArgFromLastCall() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+    sut.call(new List<Type>{ String.class }, new List<String>{ 'p' }, new List<Object>{ 'first' });
+    sut.call(new List<Type>{ String.class }, new List<String>{ 'p' }, new List<Object>{ 'second' });
+
+    // Act & Assert
+    Assert.areEqual('second', sut.getLastArgument(0));
+  }
+
+  @IsTest
+  static void givenSpyCalledMultipleTimes_getMatchingArguments_returnsOnlyMatchingCalls() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+    sut.call(new List<Type>{ String.class }, new List<String>{ 'p' }, new List<Object>{ 'foo' });
+    sut.call(new List<Type>{ String.class }, new List<String>{ 'p' }, new List<Object>{ 'bar' });
+    sut.call(new List<Type>{ String.class }, new List<String>{ 'p' }, new List<Object>{ 'foo' });
+
+    // Act
+    List<List<Object>> matches = sut.getMatchingArguments('foo');
+
+    // Assert
+    Assert.areEqual(2, matches.size());
+    Assert.areEqual('foo', matches[0][0]);
+    Assert.areEqual('foo', matches[1][0]);
+  }
+
+  @IsTest
+  static void givenSpyCalled_getMatchingArguments_returnsDefensiveCopies() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+    sut.call(new List<Type>{ String.class }, new List<String>{ 'p' }, new List<Object>{ 'foo' });
+
+    // Act
+    List<List<Object>> matches = sut.getMatchingArguments('foo');
+    matches[0].add('mutated');
+
+    // Assert — internal call log not affected
+    Assert.areEqual(1, sut.getArguments(0).size());
+  }
+
+  @IsTest
+  static void givenSpyNotCalled_getLastArguments_throwsIllegalArgumentException() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+
+    // Act & Assert
+    try {
+      sut.getLastArguments();
+      Assert.fail('Expected IllegalArgumentException');
+    } catch (IllegalArgumentException ex) {
+      Assert.isTrue(ex.getMessage().contains('No calls recorded'));
     }
   }
 }

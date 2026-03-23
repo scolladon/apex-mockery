@@ -17,7 +17,7 @@
 @IsTest
 global class MethodSpy {
   global final String methodName { get; private set; }
-  global final CallLog callLog { get; private set; }
+  private final CallLog callLog;
   private final List<MatchingParamsMethodSpyConfig> matchingBehaviorManagers;
   private final BehaviorManagement defaultBehaviorManager;
 
@@ -176,7 +176,7 @@ global class MethodSpy {
     return parameterizedMethodCall;
   }
 
-  public class CallLog {
+  private class CallLog {
     private List<MethodCall> callArguments = new List<MethodCall>();
 
     private void add(MethodCall callParam) {
@@ -206,6 +206,71 @@ global class MethodSpy {
     public MethodCall(final List<Object> args) {
       this.args = args;
     }
+  }
+
+  global Integer getCallCount() {
+    return this.callLog.size();
+  }
+
+  global List<Object> getArguments(final Integer callIndex) {
+    if (callIndex < 0 || callIndex >= this.callLog.size()) {
+      throw new IllegalArgumentException('callIndex ' + callIndex + ' is out of bounds (call count: ' + this.callLog.size() + ')');
+    }
+    return new List<Object>(this.callLog.get(callIndex));
+  }
+
+  global List<Object> getLastArguments() {
+    if (this.callLog.isEmpty()) {
+      throw new IllegalArgumentException('No calls recorded');
+    }
+    return new List<Object>(this.callLog.getLast());
+  }
+
+  global Object getArgument(final Integer callIndex, final Integer argIndex) {
+    List<Object> args = this.getArguments(callIndex);
+    if (argIndex < 0 || argIndex >= args.size()) {
+      throw new IllegalArgumentException('argIndex ' + argIndex + ' is out of bounds (arg count: ' + args.size() + ')');
+    }
+    return args[argIndex];
+  }
+
+  global Object getLastArgument(final Integer argIndex) {
+    List<Object> args = this.getLastArguments();
+    if (argIndex < 0 || argIndex >= args.size()) {
+      throw new IllegalArgumentException('argIndex ' + argIndex + ' is out of bounds (arg count: ' + args.size() + ')');
+    }
+    return args[argIndex];
+  }
+
+  global List<List<Object>> getMatchingArguments(final Object arg) {
+    return this.getMatchingArgumentsList((arg instanceof List<Argument.Matchable>) ? (List<Argument.Matchable>) arg : Argument.of(arg));
+  }
+
+  global List<List<Object>> getMatchingArguments(final Object arg1, final Object arg2) {
+    return this.getMatchingArgumentsList(Argument.of(arg1, arg2));
+  }
+
+  global List<List<Object>> getMatchingArguments(final Object arg1, final Object arg2, final Object arg3) {
+    return this.getMatchingArgumentsList(Argument.of(arg1, arg2, arg3));
+  }
+
+  global List<List<Object>> getMatchingArguments(final Object arg1, final Object arg2, final Object arg3, final Object arg4) {
+    return this.getMatchingArgumentsList(Argument.of(arg1, arg2, arg3, arg4));
+  }
+
+  global List<List<Object>> getMatchingArguments(final Object arg1, final Object arg2, final Object arg3, final Object arg4, final Object arg5) {
+    return this.getMatchingArgumentsList(Argument.of(arg1, arg2, arg3, arg4, arg5));
+  }
+
+  private List<List<Object>> getMatchingArgumentsList(final List<Argument.Matchable> matchers) {
+    final List<List<Object>> result = new List<List<Object>>();
+    for (Integer i = 0; i < this.callLog.size(); i++) {
+      List<Object> callArgs = this.callLog.get(i);
+      if (Argument.matches(matchers, callArgs)) {
+        result.add(new List<Object>(callArgs));
+      }
+    }
+    return result;
   }
 
   global interface MethodSpyCall {

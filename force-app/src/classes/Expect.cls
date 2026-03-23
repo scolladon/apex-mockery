@@ -53,6 +53,19 @@ global class Expect {
     void hasBeenLastCalledWith(final Object param1, final Object param2, final Object param3);
     void hasBeenLastCalledWith(final Object param1, final Object param2, final Object param3, final Object param4);
     void hasBeenLastCalledWith(final Object param1, final Object param2, final Object param3, final Object param4, final Object param5);
+
+    /**
+     * Assert that a method spy has been called at the Nth position with matching parameters (1-based)
+     *
+     * @param n the 1-based call index to assert against
+     * @see     Arguments
+     */
+    void hasBeenCalledNthWith(Integer n);
+    void hasBeenCalledNthWith(Integer n, Object param1);
+    void hasBeenCalledNthWith(Integer n, Object param1, Object param2);
+    void hasBeenCalledNthWith(Integer n, Object param1, Object param2, Object param3);
+    void hasBeenCalledNthWith(Integer n, Object param1, Object param2, Object param3, Object param4);
+    void hasBeenCalledNthWith(Integer n, Object param1, Object param2, Object param3, Object param4, Object param5);
   }
 
   global interface ErrorMessage {
@@ -117,15 +130,15 @@ global class Expect {
     }
 
     public void hasNotBeenCalled() {
-      this.asserter.isTrue(this.spy.callLog.isEmpty(), buildErrorMessage(this.spy, ErrorMessageType.CALLED));
+      this.asserter.isTrue(this.spy.getCallCount() == 0, buildErrorMessage(this.spy, ErrorMessageType.CALLED));
     }
 
     public void hasBeenCalled() {
-      this.asserter.isFalse(this.spy.callLog.isEmpty(), buildErrorMessage(this.spy, ErrorMessageType.NEVER_CALLED));
+      this.asserter.isFalse(this.spy.getCallCount() == 0, buildErrorMessage(this.spy, ErrorMessageType.NEVER_CALLED));
     }
 
     public void hasBeenCalledTimes(final Integer count) {
-      this.asserter.isTrue(this.spy.callLog.size() == count, buildErrorMessage(this.spy, ErrorMessageType.NOT_CALLED_TIMES, count));
+      this.asserter.isTrue(this.spy.getCallCount() == count, buildErrorMessage(this.spy, ErrorMessageType.NOT_CALLED_TIMES, count));
     }
 
     // SYNC POINT: The 1-5 argument overloads below are duplicated in:
@@ -158,13 +171,13 @@ global class Expect {
 
     private void hasBeenCalledWithArguments(final List<Argument.Matchable> args) {
       Boolean hasBeenCalledWithArguments = false;
-      for (Integer i = 0; i < this.spy.callLog.size(); ++i) {
-        if (Argument.matches(args, this.spy.callLog.get(i))) {
+      for (Integer i = 0; i < this.spy.getCallCount(); ++i) {
+        if (Argument.matches(args, this.spy.getArguments(i))) {
           hasBeenCalledWithArguments = true;
           break;
         }
       }
-      this.asserter.isFalse(this.spy.callLog.isEmpty(), buildErrorMessage(this.spy, ErrorMessageType.NEVER_CALLED));
+      this.asserter.isFalse(this.spy.getCallCount() == 0, buildErrorMessage(this.spy, ErrorMessageType.NEVER_CALLED));
       this.asserter.isTrue(hasBeenCalledWithArguments, buildErrorMessage(this.spy, ErrorMessageType.NOT_CALLED_WITH, args));
     }
 
@@ -193,8 +206,52 @@ global class Expect {
     }
 
     private void hasBeenLastCalledWithArguments(final List<Argument.Matchable> args) {
-      this.asserter.isFalse(this.spy.callLog.isEmpty(), buildErrorMessage(this.spy, ErrorMessageType.NEVER_CALLED));
-      this.asserter.isTrue(Argument.matches(args, this.spy.callLog.getLast()), buildErrorMessage(this.spy, ErrorMessageType.NOT_LAST_CALLED_WITH, args));
+      final Boolean isEmpty = this.spy.getCallCount() == 0;
+      this.asserter.isFalse(isEmpty, buildErrorMessage(this.spy, ErrorMessageType.NEVER_CALLED));
+      if (isEmpty) {
+        this.asserter.isTrue(false, buildErrorMessage(this.spy, ErrorMessageType.NOT_LAST_CALLED_WITH, args));
+        return;
+      }
+      this.asserter.isTrue(Argument.matches(args, this.spy.getLastArguments()), buildErrorMessage(this.spy, ErrorMessageType.NOT_LAST_CALLED_WITH, args));
+    }
+
+    public void hasBeenCalledNthWith(final Integer n) {
+      this.hasBeenCalledNthWithArguments(n, Argument.empty());
+    }
+
+    public void hasBeenCalledNthWith(final Integer n, final Object arg) {
+      this.hasBeenCalledNthWithArguments(n, (arg instanceof List<Argument.Matchable>) ? (List<Argument.Matchable>) arg : Argument.of(arg));
+    }
+
+    public void hasBeenCalledNthWith(final Integer n, final Object arg1, final Object arg2) {
+      this.hasBeenCalledNthWithArguments(n, Argument.of(arg1, arg2));
+    }
+
+    public void hasBeenCalledNthWith(final Integer n, final Object arg1, final Object arg2, final Object arg3) {
+      this.hasBeenCalledNthWithArguments(n, Argument.of(arg1, arg2, arg3));
+    }
+
+    public void hasBeenCalledNthWith(final Integer n, final Object arg1, final Object arg2, final Object arg3, final Object arg4) {
+      this.hasBeenCalledNthWithArguments(n, Argument.of(arg1, arg2, arg3, arg4));
+    }
+
+    public void hasBeenCalledNthWith(final Integer n, final Object arg1, final Object arg2, final Object arg3, final Object arg4, final Object arg5) {
+      this.hasBeenCalledNthWithArguments(n, Argument.of(arg1, arg2, arg3, arg4, arg5));
+    }
+
+    private void hasBeenCalledNthWithArguments(final Integer n, final List<Argument.Matchable> args) {
+      if (n < 1) {
+        throw new IllegalArgumentException('n must be >= 1, got: ' + n);
+      }
+      final Integer callCount = this.spy.getCallCount();
+      if (n > callCount) {
+        this.asserter.isTrue(false, buildErrorMessage(this.spy, ErrorMessageType.CALLED_FEWER_TIMES, callCount + ' time' + (callCount == 1 ? '' : 's')));
+        return;
+      }
+      this.asserter.isTrue(
+        Argument.matches(args, this.spy.getArguments(n - 1)),
+        buildErrorMessage(this.spy, ErrorMessageType.NOT_NTH_CALLED_WITH, 'the ' + n + ' time with ' + args)
+      );
     }
   }
 
@@ -203,7 +260,9 @@ global class Expect {
     NEVER_CALLED,
     NOT_CALLED_WITH,
     NOT_LAST_CALLED_WITH,
-    NOT_CALLED_TIMES
+    NOT_CALLED_TIMES,
+    NOT_NTH_CALLED_WITH,
+    CALLED_FEWER_TIMES
   }
 
   private class ErrorMessageRow {
@@ -239,28 +298,24 @@ global class Expect {
         ErrorMessageType.NEVER_CALLED => 'Method {0} was not called',
         ErrorMessageType.NOT_CALLED_WITH => 'Method {0} was not called with {1}',
         ErrorMessageType.NOT_LAST_CALLED_WITH => 'Method {0} was not last called with {1}',
-        ErrorMessageType.NOT_CALLED_TIMES => 'Method {0} was not called {1} times'
+        ErrorMessageType.NOT_CALLED_TIMES => 'Method {0} was not called {1} times',
+        ErrorMessageType.NOT_NTH_CALLED_WITH => 'Method {0} was not called {1}',
+        ErrorMessageType.CALLED_FEWER_TIMES => 'Method {0} was only called {1}'
       };
       return String.format(messages.get(error), new List<String>{ spy.methodName, argument + '' });
     }
 
     private List<ErrorMessageRow> buildCallTraces(MethodSpy spy) {
-      final List<List<Object>> reversedCallLogArguments = new List<List<Object>>();
-      for (Integer i = this.spy.callLog.size() - 1; i >= 0; i--) {
-        reversedCallLogArguments.add(this.spy.callLog.get(i));
-      }
-
-      if (reversedCallLogArguments.isEmpty()) {
+      final Integer count = spy.getCallCount();
+      if (count == 0) {
         return new List<ErrorMessageRow>();
       }
-
       final List<ErrorMessageRow> rows = new List<ErrorMessageRow>();
       rows.add(new ErrorMessageRow('method call history:'));
       final String template = '#{0} {1}({2})';
-      for (Integer i = 0; i < reversedCallLogArguments.size(); i++) {
-        final List<Object> args = reversedCallLogArguments[i];
-        final Integer count = reversedCallLogArguments.size() - i;
-        rows.add(new ErrorMessageRow(String.format(template, new List<Object>{ count, spy.methodName, args + '' }), true));
+      for (Integer i = count - 1; i >= 0; i--) {
+        final List<Object> args = spy.getArguments(i);
+        rows.add(new ErrorMessageRow(String.format(template, new List<Object>{ i + 1, spy.methodName, args + '' }), true));
       }
       return rows;
     }
