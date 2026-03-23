@@ -736,4 +736,177 @@ public class ArgumentTest {
     Assert.isFalse(Argument.ofType(Account.getSObjectType()) == Argument.equals(new Account()));
     Assert.isFalse(Argument.ofType(Argument.class) == Argument.jsonEquals(new Account()));
   }
+
+  @IsTest
+  static void givenNotNullMatchable_whenMatchingNull_thenReturnsFalse() {
+    // Arrange
+    Argument.Matchable sut = Argument.notNull();
+
+    // Act & Assert
+    Assert.isFalse(sut.matches(null));
+  }
+
+  @IsTest
+  static void givenNotNullMatchable_whenMatchingAnyNonNullValue_thenReturnsTrue() {
+    // Arrange
+    Argument.Matchable sut = Argument.notNull();
+
+    // Act & Assert
+    Assert.isTrue(sut.matches('any string'));
+    Assert.isTrue(sut.matches(0));
+    Assert.isTrue(sut.matches(false));
+    Assert.isTrue(sut.matches(new Account()));
+    Assert.isTrue(sut.matches(new List<Object>()));
+  }
+
+  @IsTest
+  static void givenTwoNotNullMatchables_thenTheyAreEqual() {
+    // Arrange
+    Argument.Matchable sut = Argument.notNull();
+    Argument.Matchable other = Argument.notNull();
+
+    // Act & Assert
+    Assert.isTrue(sut.equals(other));
+  }
+
+  @IsTest
+  static void givenNotMatchable_whenInnerMatcherMatchesNull_thenReturnsFalse() {
+    // Arrange
+    Argument.Matchable sut = Argument.negate(Argument.any());
+
+    // Act & Assert
+    Assert.isFalse(sut.matches(null));
+  }
+
+  @IsTest
+  static void givenNotMatchable_whenInnerMatcherDoesNotMatch_thenReturnsTrue() {
+    // Arrange
+    Argument.Matchable sut = Argument.negate(Argument.equals('forbidden'));
+
+    // Act & Assert
+    Assert.isTrue(sut.matches('allowed'));
+    Assert.isFalse(sut.matches('forbidden'));
+  }
+
+  @IsTest
+  static void givenTwoNotMatchablesWithSameInner_thenTheyAreEqual() {
+    // Arrange
+    Argument.Matchable delegate = Argument.equals('x');
+    Argument.Matchable sut = Argument.negate(delegate);
+    Argument.Matchable other = Argument.negate(delegate);
+
+    // Act & Assert
+    Assert.isTrue(sut.equals(other));
+  }
+
+  @IsTest
+  static void givenAllOfMatchable_whenAllInnerMatchersMatch_thenReturnsTrue() {
+    // Arrange
+    Argument.Matchable sut = Argument.allOf(Argument.notNull(), Argument.ofType('String'));
+
+    // Act & Assert
+    Assert.isTrue(sut.matches('hello'));
+  }
+
+  @IsTest
+  static void givenAllOfMatchable_whenOneInnerMatcherDoesNotMatch_thenReturnsFalse() {
+    // Arrange
+    Argument.Matchable sut = Argument.allOf(Argument.notNull(), Argument.ofType('String'));
+
+    // Act & Assert
+    Assert.isFalse(sut.matches(null));
+    Assert.isFalse(sut.matches(42));
+  }
+
+  @IsTest
+  static void givenAllOfMatchable_whenCalledWithFiveMatchers_thenAllMustMatch() {
+    // Arrange
+    Argument.Matchable sut = Argument.allOf(
+      Argument.notNull(),
+      Argument.ofType('String'),
+      Argument.negate(Argument.equals('bad')),
+      Argument.any(),
+      Argument.negate(Argument.equals('also-bad'))
+    );
+
+    // Act & Assert
+    Assert.isTrue(sut.matches('good'));
+    Assert.isFalse(sut.matches('bad'));
+  }
+
+  @IsTest
+  static void givenAllOfMatchableViaList_whenAllMatch_thenReturnsTrue() {
+    // Arrange
+    Argument.Matchable sut = Argument.allOf(new List<Argument.Matchable>{ Argument.notNull(), Argument.ofType('Integer') });
+
+    // Act & Assert
+    Assert.isTrue(sut.matches(5));
+    Assert.isFalse(sut.matches(null));
+  }
+
+  @IsTest
+  static void givenAnyOfMatchable_whenAtLeastOneInnerMatches_thenReturnsTrue() {
+    // Arrange
+    Argument.Matchable sut = Argument.anyOf(Argument.equals('a'), Argument.equals('b'));
+
+    // Act & Assert
+    Assert.isTrue(sut.matches('a'));
+    Assert.isTrue(sut.matches('b'));
+    Assert.isFalse(sut.matches('c'));
+  }
+
+  @IsTest
+  static void givenAnyOfMatchable_whenNoneMatch_thenReturnsFalse() {
+    // Arrange
+    Argument.Matchable sut = Argument.anyOf(Argument.equals(1), Argument.equals(2));
+
+    // Act & Assert
+    Assert.isFalse(sut.matches(3));
+  }
+
+  @IsTest
+  static void givenAnyOfMatchableViaList_whenOneMatches_thenReturnsTrue() {
+    // Arrange
+    Argument.Matchable sut = Argument.anyOf(new List<Argument.Matchable>{ Argument.equals('x'), Argument.equals('y') });
+
+    // Act & Assert
+    Assert.isTrue(sut.matches('x'));
+    Assert.isFalse(sut.matches('z'));
+  }
+
+  @IsTest
+  static void givenNegateMatchable_whenNullDelegate_thenThrowsIllegalArgumentException() {
+    // Arrange & Act
+    try {
+      Argument.negate(null);
+      Assert.fail('Expected IllegalArgumentException');
+    } catch (IllegalArgumentException ex) {
+      // Assert
+      Assert.isTrue(ex.getMessage().contains('null'));
+    }
+  }
+
+  @IsTest
+  static void givenAllOfMatchable_whenNullList_thenThrowsIllegalArgumentException() {
+    // Arrange & Act
+    try {
+      Argument.allOf((List<Argument.Matchable>) null);
+      Assert.fail('Expected IllegalArgumentException');
+    } catch (IllegalArgumentException ex) {
+      // Assert
+      Assert.isTrue(ex.getMessage().contains('null'));
+    }
+  }
+
+  @IsTest
+  static void givenAnyOfMatchable_whenNullList_thenThrowsIllegalArgumentException() {
+    // Arrange & Act
+    try {
+      Argument.anyOf((List<Argument.Matchable>) null);
+      Assert.fail('Expected IllegalArgumentException');
+    } catch (IllegalArgumentException ex) {
+      // Assert
+      Assert.isTrue(ex.getMessage().contains('null'));
+    }
+  }
 }

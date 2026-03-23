@@ -8,6 +8,10 @@
 /**
  * Matchable offers public static methods to build out-of-the-box matchers to be used with Expect
  *    - Argument.any()
+ *    - Argument.notNull()
+ *    - Argument.negate(Argument.Matchable matchable)
+ *    - Argument.allOf(List<Argument.Matchable> matchables)
+ *    - Argument.anyOf(List<Argument.Matchable> matchables)
  *    - Argument.equals(Object object)
  *    - Argument.jsonEquals(Object object)
  *    - Argument.ofType(String typeName)
@@ -90,6 +94,83 @@ global class Argument {
     return new AnyMatchable();
   }
 
+  global static Argument.Matchable notNull() {
+    return new NotNullMatchable();
+  }
+
+  global static Argument.Matchable negate(final Argument.Matchable negated) {
+    if (negated == null) {
+      throw new IllegalArgumentException('matchable must not be null');
+    }
+    return new NotMatchable(negated);
+  }
+
+  global static Argument.Matchable allOf(final List<Argument.Matchable> matchables) {
+    if (matchables == null) {
+      throw new IllegalArgumentException('matchables must not be null');
+    }
+    return new AllOfMatchable(matchables);
+  }
+
+  global static Argument.Matchable allOf(final Argument.Matchable m1) {
+    return Argument.allOf(new List<Argument.Matchable>{ m1 });
+  }
+
+  global static Argument.Matchable allOf(final Argument.Matchable m1, final Argument.Matchable m2) {
+    return Argument.allOf(new List<Argument.Matchable>{ m1, m2 });
+  }
+
+  global static Argument.Matchable allOf(final Argument.Matchable m1, final Argument.Matchable m2, final Argument.Matchable m3) {
+    return Argument.allOf(new List<Argument.Matchable>{ m1, m2, m3 });
+  }
+
+  global static Argument.Matchable allOf(final Argument.Matchable m1, final Argument.Matchable m2, final Argument.Matchable m3, final Argument.Matchable m4) {
+    return Argument.allOf(new List<Argument.Matchable>{ m1, m2, m3, m4 });
+  }
+
+  global static Argument.Matchable allOf(
+    final Argument.Matchable m1,
+    final Argument.Matchable m2,
+    final Argument.Matchable m3,
+    final Argument.Matchable m4,
+    final Argument.Matchable m5
+  ) {
+    return Argument.allOf(new List<Argument.Matchable>{ m1, m2, m3, m4, m5 });
+  }
+
+  global static Argument.Matchable anyOf(final List<Argument.Matchable> matchables) {
+    if (matchables == null) {
+      throw new IllegalArgumentException('matchables must not be null');
+    }
+    return new AnyOfMatchable(matchables);
+  }
+
+  global static Argument.Matchable anyOf(final Argument.Matchable m1) {
+    return Argument.anyOf(new List<Argument.Matchable>{ m1 });
+  }
+
+  global static Argument.Matchable anyOf(final Argument.Matchable m1, final Argument.Matchable m2) {
+    return Argument.anyOf(new List<Argument.Matchable>{ m1, m2 });
+  }
+
+  global static Argument.Matchable anyOf(final Argument.Matchable m1, final Argument.Matchable m2, final Argument.Matchable m3) {
+    return Argument.anyOf(new List<Argument.Matchable>{ m1, m2, m3 });
+  }
+
+  global static Argument.Matchable anyOf(final Argument.Matchable m1, final Argument.Matchable m2, final Argument.Matchable m3, final Argument.Matchable m4) {
+    return Argument.anyOf(new List<Argument.Matchable>{ m1, m2, m3, m4 });
+  }
+
+  global static Argument.Matchable anyOf(
+    final Argument.Matchable m1,
+    final Argument.Matchable m2,
+    final Argument.Matchable m3,
+    final Argument.Matchable m4,
+    final Argument.Matchable m5
+  ) {
+    return Argument.anyOf(new List<Argument.Matchable>{ m1, m2, m3, m4, m5 });
+  }
+
   global static Argument.Matchable equals(final Object callArgument) {
     return new EqualsMatchable(callArgument);
   }
@@ -121,6 +202,118 @@ global class Argument {
 
     public Boolean equals(Object obj) {
       return obj != null && obj instanceof AnyMatchable;
+    }
+  }
+
+  private class NotNullMatchable implements Argument.Matchable {
+    public Boolean matches(final Object callArgument) {
+      return callArgument != null;
+    }
+
+    public override String toString() {
+      return 'notNull';
+    }
+
+    public Boolean equals(Object obj) {
+      return obj != null && obj instanceof NotNullMatchable;
+    }
+  }
+
+  private class NotMatchable implements Argument.Matchable {
+    private final Argument.Matchable delegate;
+
+    public NotMatchable(final Argument.Matchable delegate) {
+      this.delegate = delegate;
+    }
+
+    public Boolean matches(final Object callArgument) {
+      return !this.delegate.matches(callArgument);
+    }
+
+    public override String toString() {
+      return 'not(' + this.delegate + ')';
+    }
+
+    public Boolean equals(Object obj) {
+      if (obj == null || !(obj instanceof NotMatchable)) {
+        return false;
+      }
+      NotMatchable other = (NotMatchable) obj;
+      return this.delegate.equals(other.delegate);
+    }
+  }
+
+  private class AllOfMatchable implements Argument.Matchable {
+    private final List<Argument.Matchable> delegates;
+
+    public AllOfMatchable(final List<Argument.Matchable> delegates) {
+      this.delegates = delegates;
+    }
+
+    public Boolean matches(final Object callArgument) {
+      for (Argument.Matchable delegate : this.delegates) {
+        if (!delegate.matches(callArgument)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    public override String toString() {
+      return 'allOf(' + this.delegates + ')';
+    }
+
+    public Boolean equals(Object obj) {
+      if (obj == null || !(obj instanceof AllOfMatchable)) {
+        return false;
+      }
+      AllOfMatchable other = (AllOfMatchable) obj;
+      if (this.delegates.size() != other.delegates.size()) {
+        return false;
+      }
+      for (Integer i = 0; i < this.delegates.size(); i++) {
+        if (!this.delegates[i].equals(other.delegates[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+  }
+
+  private class AnyOfMatchable implements Argument.Matchable {
+    private final List<Argument.Matchable> delegates;
+
+    public AnyOfMatchable(final List<Argument.Matchable> delegates) {
+      this.delegates = delegates;
+    }
+
+    public Boolean matches(final Object callArgument) {
+      for (Argument.Matchable delegate : this.delegates) {
+        if (delegate.matches(callArgument)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    public override String toString() {
+      return 'anyOf(' + this.delegates + ')';
+    }
+
+    public Boolean equals(Object obj) {
+      if (obj == null || !(obj instanceof AnyOfMatchable)) {
+        return false;
+      }
+      AnyOfMatchable other = (AnyOfMatchable) obj;
+      if (this.delegates.size() != other.delegates.size()) {
+        return false;
+      }
+      for (Integer i = 0; i < this.delegates.size(); i++) {
+        if (!this.delegates[i].equals(other.delegates[i])) {
+          return false;
+        }
+      }
+      return true;
     }
   }
 
