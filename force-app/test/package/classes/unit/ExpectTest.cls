@@ -479,6 +479,84 @@ private class ExpectTest {
   }
 
   @IsTest
+  static void hasBeenCalledNthWith_givenSpyCalledOnce_whenAssertingFirstCall_thenPasses() {
+    // Arrange
+    MethodSpy spy = new MethodSpy('method');
+    spy.call(new List<Type>{ String.class }, new List<String>{ 'arg' }, new List<Object>{ 'hello' });
+    FakeAsserter fakeAsserter = new FakeAsserter();
+    Expect.MethodSpyExpectable sut = Expect.that(spy, fakeAsserter);
+
+    // Act
+    sut.hasBeenCalledNthWith(1, 'hello');
+
+    // Assert
+    Assert.isFalse(fakeAsserter.failed);
+  }
+
+  @IsTest
+  static void hasBeenCalledNthWith_givenSpyCalledTwice_whenAssertingSecondCall_thenPasses() {
+    // Arrange
+    MethodSpy spy = new MethodSpy('method');
+    spy.call(new List<Type>{ String.class }, new List<String>{ 'p' }, new List<Object>{ 'first' });
+    spy.call(new List<Type>{ String.class }, new List<String>{ 'p' }, new List<Object>{ 'second' });
+    FakeAsserter fakeAsserter = new FakeAsserter();
+    Expect.MethodSpyExpectable sut = Expect.that(spy, fakeAsserter);
+
+    // Act
+    sut.hasBeenCalledNthWith(2, 'second');
+
+    // Assert
+    Assert.isFalse(fakeAsserter.failed);
+  }
+
+  @IsTest
+  static void hasBeenCalledNthWith_givenSpyCalledOnce_whenAssertingWrongArgs_thenFails() {
+    // Arrange
+    MethodSpy spy = new MethodSpy('method');
+    spy.call(new List<Type>{ String.class }, new List<String>{ 'p' }, new List<Object>{ 'hello' });
+    FakeAsserter fakeAsserter = new FakeAsserter();
+    Expect.MethodSpyExpectable sut = Expect.that(spy, fakeAsserter);
+
+    // Act
+    sut.hasBeenCalledNthWith(1, 'wrong');
+
+    // Assert
+    Assert.isTrue(fakeAsserter.failed);
+  }
+
+  @IsTest
+  static void hasBeenCalledNthWith_givenNLessThanOne_whenAsserted_thenThrowsIllegalArgumentException() {
+    // Arrange
+    MethodSpy spy = new MethodSpy('method');
+    FakeAsserter fakeAsserter = new FakeAsserter();
+    Expect.MethodSpyExpectable sut = Expect.that(spy, fakeAsserter);
+
+    // Act & Assert
+    try {
+      sut.hasBeenCalledNthWith(0, 'anything');
+      Assert.fail('Expected IllegalArgumentException');
+    } catch (IllegalArgumentException ex) {
+      Assert.isTrue(ex.getMessage().contains('n must be >= 1'));
+    }
+  }
+
+  @IsTest
+  static void hasBeenCalledNthWith_givenNGreaterThanCallCount_whenAsserted_thenFails() {
+    // Arrange
+    MethodSpy spy = new MethodSpy('method');
+    spy.call(new List<Type>{ String.class }, new List<String>{ 'p' }, new List<Object>{ 'hello' });
+    FakeAsserter fakeAsserter = new FakeAsserter();
+    Expect.MethodSpyExpectable sut = Expect.that(spy, fakeAsserter);
+
+    // Act
+    sut.hasBeenCalledNthWith(2, 'hello');
+
+    // Assert
+    Assert.isTrue(fakeAsserter.failed);
+    Assert.isTrue(fakeAsserter.errorMessage.contains('was only called 1 time'));
+  }
+
+  @IsTest
   static void givenExpectedEqualsAssert_MethodSpyAsserter_doNotThrow() {
     // Arrange
     Expect.Asserter sut = new Expect.MethodSpyAsserter();
