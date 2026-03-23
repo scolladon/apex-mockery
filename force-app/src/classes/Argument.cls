@@ -17,6 +17,12 @@
  *    - Argument.ofType(String typeName)
  *    - Argument.ofType(Type type)
  *    - Argument.ofType(Schema.SObjectType sobjectType)
+ *    - Argument.stringContaining(String substring)
+ *    - Argument.stringStartingWith(String prefix)
+ *    - Argument.stringEndingWith(String suffix)
+ *    - Argument.stringMatching(String regex)
+ *    - Argument.collectionContaining(Object value)
+ *    - Argument.hasSize(Integer size)
  */
 @IsTest
 @SuppressWarnings('PMD.EmptyStatementBlock, PMD.AvoidGlobalModifier')
@@ -189,6 +195,30 @@ global class Argument {
 
   global static Argument.Matchable ofType(final Type callArgument) {
     return new TypeMatchable(callArgument);
+  }
+
+  global static Argument.Matchable stringContaining(final String substring) {
+    return new StringContainingMatchable(substring);
+  }
+
+  global static Argument.Matchable stringStartingWith(final String prefix) {
+    return new StringStartingWithMatchable(prefix);
+  }
+
+  global static Argument.Matchable stringEndingWith(final String suffix) {
+    return new StringEndingWithMatchable(suffix);
+  }
+
+  global static Argument.Matchable stringMatching(final String regex) {
+    return new StringMatchingMatchable(regex);
+  }
+
+  global static Argument.Matchable collectionContaining(final Object value) {
+    return new CollectionContainingMatchable(value);
+  }
+
+  global static Argument.Matchable hasSize(final Integer size) {
+    return new HasSizeMatchable(size);
   }
 
   private class AnyMatchable implements Argument.Matchable {
@@ -419,6 +449,192 @@ global class Argument {
       }
       TypeMatchable other = (TypeMatchable) obj;
       return this.typeNameToMatch == other.typeNameToMatch;
+    }
+  }
+
+  private class StringContainingMatchable implements Argument.Matchable {
+    private final String pattern;
+
+    public StringContainingMatchable(final String pattern) {
+      this.pattern = pattern;
+    }
+
+    public Boolean matches(final Object callArgument) {
+      if (!(callArgument instanceof String)) {
+        return false;
+      }
+      return ((String) callArgument).contains(this.pattern);
+    }
+
+    public override String toString() {
+      return 'stringContaining(' + this.pattern + ')';
+    }
+
+    public Boolean equals(Object obj) {
+      if (obj == null || !(obj instanceof StringContainingMatchable)) {
+        return false;
+      }
+      return this.pattern == ((StringContainingMatchable) obj).pattern;
+    }
+  }
+
+  private class StringStartingWithMatchable implements Argument.Matchable {
+    private final String pattern;
+
+    public StringStartingWithMatchable(final String pattern) {
+      this.pattern = pattern;
+    }
+
+    public Boolean matches(final Object callArgument) {
+      if (!(callArgument instanceof String)) {
+        return false;
+      }
+      return ((String) callArgument).startsWith(this.pattern);
+    }
+
+    public override String toString() {
+      return 'stringStartingWith(' + this.pattern + ')';
+    }
+
+    public Boolean equals(Object obj) {
+      if (obj == null || !(obj instanceof StringStartingWithMatchable)) {
+        return false;
+      }
+      return this.pattern == ((StringStartingWithMatchable) obj).pattern;
+    }
+  }
+
+  private class StringEndingWithMatchable implements Argument.Matchable {
+    private final String pattern;
+
+    public StringEndingWithMatchable(final String pattern) {
+      this.pattern = pattern;
+    }
+
+    public Boolean matches(final Object callArgument) {
+      if (!(callArgument instanceof String)) {
+        return false;
+      }
+      return ((String) callArgument).endsWith(this.pattern);
+    }
+
+    public override String toString() {
+      return 'stringEndingWith(' + this.pattern + ')';
+    }
+
+    public Boolean equals(Object obj) {
+      if (obj == null || !(obj instanceof StringEndingWithMatchable)) {
+        return false;
+      }
+      return this.pattern == ((StringEndingWithMatchable) obj).pattern;
+    }
+  }
+
+  private class StringMatchingMatchable implements Argument.Matchable {
+    private final String regex;
+
+    public StringMatchingMatchable(final String regex) {
+      this.regex = regex;
+    }
+
+    public Boolean matches(final Object callArgument) {
+      if (!(callArgument instanceof String)) {
+        return false;
+      }
+      return Pattern.matches(this.regex, (String) callArgument);
+    }
+
+    public override String toString() {
+      return 'stringMatching(' + this.regex + ')';
+    }
+
+    public Boolean equals(Object obj) {
+      if (obj == null || !(obj instanceof StringMatchingMatchable)) {
+        return false;
+      }
+      return this.regex == ((StringMatchingMatchable) obj).regex;
+    }
+  }
+
+  private static List<Object> toIterableList(final Object callArgument) {
+    if (callArgument instanceof List<Object>) {
+      return (List<Object>) callArgument;
+    }
+    String typeName = Argument.getTypeName(callArgument);
+    if (typeName != null && typeName.startsWith('Set<')) {
+      return (List<Object>) JSON.deserializeUntyped(JSON.serialize(callArgument));
+    }
+    return null;
+  }
+
+  private class CollectionContainingMatchable implements Argument.Matchable {
+    private final Object expected;
+
+    public CollectionContainingMatchable(final Object expected) {
+      this.expected = expected;
+    }
+
+    public Boolean matches(final Object callArgument) {
+      List<Object> items = Argument.toIterableList(callArgument);
+      if (items == null) {
+        return false;
+      }
+      Argument.Matchable equalsMatcher = Argument.equals(this.expected);
+      for (Object item : items) {
+        if (equalsMatcher.matches(item)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    public override String toString() {
+      return 'collectionContaining(' + this.expected + ')';
+    }
+
+    public Boolean equals(Object obj) {
+      if (obj == null || !(obj instanceof CollectionContainingMatchable)) {
+        return false;
+      }
+      return Argument.equals(this.expected).matches(((CollectionContainingMatchable) obj).expected);
+    }
+  }
+
+  private class HasSizeMatchable implements Argument.Matchable {
+    private final Integer expectedSize;
+
+    public HasSizeMatchable(final Integer expectedSize) {
+      this.expectedSize = expectedSize;
+    }
+
+    public Boolean matches(final Object callArgument) {
+      if (callArgument instanceof List<Object>) {
+        return ((List<Object>) callArgument).size() == this.expectedSize;
+      }
+      String typeName = Argument.getTypeName(callArgument);
+      if (typeName == null) {
+        return false;
+      }
+      if (typeName.startsWith('Set<')) {
+        List<Object> items = (List<Object>) JSON.deserializeUntyped(JSON.serialize(callArgument));
+        return items.size() == this.expectedSize;
+      }
+      if (typeName.startsWith('Map<')) {
+        Map<String, Object> mapItems = (Map<String, Object>) JSON.deserializeUntyped(JSON.serialize(callArgument));
+        return mapItems.size() == this.expectedSize;
+      }
+      return false;
+    }
+
+    public override String toString() {
+      return 'hasSize(' + this.expectedSize + ')';
+    }
+
+    public Boolean equals(Object obj) {
+      if (obj == null || !(obj instanceof HasSizeMatchable)) {
+        return false;
+      }
+      return this.expectedSize == ((HasSizeMatchable) obj).expectedSize;
     }
   }
 

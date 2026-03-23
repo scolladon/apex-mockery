@@ -909,4 +909,145 @@ public class ArgumentTest {
       Assert.isTrue(ex.getMessage().contains('null'));
     }
   }
+
+  @IsTest
+  static void givenStringContainingMatchable_whenStringContainsSubstring_thenReturnsTrue() {
+    // Arrange
+    Argument.Matchable sut = Argument.stringContaining('ell');
+
+    // Act & Assert
+    Assert.isTrue(sut.matches('hello'));
+    Assert.isFalse(sut.matches('world'));
+    Assert.isFalse(sut.matches(null));
+    Assert.isFalse(sut.matches(42));
+  }
+
+  @IsTest
+  static void givenStringStartingWithMatchable_whenStringStartsWithPrefix_thenReturnsTrue() {
+    // Arrange
+    Argument.Matchable sut = Argument.stringStartingWith('hel');
+
+    // Act & Assert
+    Assert.isTrue(sut.matches('hello'));
+    Assert.isFalse(sut.matches('world'));
+    Assert.isFalse(sut.matches(null));
+  }
+
+  @IsTest
+  static void givenStringEndingWithMatchable_whenStringEndsWithSuffix_thenReturnsTrue() {
+    // Arrange
+    Argument.Matchable sut = Argument.stringEndingWith('rld');
+
+    // Act & Assert
+    Assert.isTrue(sut.matches('world'));
+    Assert.isFalse(sut.matches('hello'));
+    Assert.isFalse(sut.matches(null));
+  }
+
+  @IsTest
+  static void givenStringMatchingMatchable_whenStringMatchesRegex_thenReturnsTrue() {
+    // Arrange
+    Argument.Matchable sut = Argument.stringMatching('\\d+');
+
+    // Act & Assert
+    Assert.isTrue(sut.matches('123'));
+    Assert.isFalse(sut.matches('abc'));
+    Assert.isFalse(sut.matches(null));
+  }
+
+  @IsTest
+  static void givenStringMatchables_thenSameKindWithSameValueAreEqual() {
+    // Arrange & Act & Assert
+    Assert.isTrue(Argument.stringContaining('x').equals(Argument.stringContaining('x')));
+    Assert.isFalse(Argument.stringContaining('x').equals(Argument.stringContaining('y')));
+    Assert.isTrue(Argument.stringStartingWith('x').equals(Argument.stringStartingWith('x')));
+    Assert.isTrue(Argument.stringEndingWith('x').equals(Argument.stringEndingWith('x')));
+    Assert.isTrue(Argument.stringMatching('x').equals(Argument.stringMatching('x')));
+  }
+
+  @IsTest
+  static void givenCollectionContainingMatchable_whenListContainsValue_thenReturnsTrue() {
+    // Arrange
+    Argument.Matchable sut = Argument.collectionContaining('b');
+
+    // Act & Assert
+    Assert.isTrue(sut.matches(new List<Object>{ 'a', 'b', 'c' }));
+    Assert.isFalse(sut.matches(new List<Object>{ 'a', 'c' }));
+  }
+
+  @IsTest
+  static void givenCollectionContainingMatchable_whenSetContainsValue_thenReturnsTrue() {
+    // Arrange
+    Argument.Matchable sut = Argument.collectionContaining('b');
+
+    // Act & Assert
+    Assert.isTrue(sut.matches(new Set<String>{ 'a', 'b', 'c' }));
+    Assert.isFalse(sut.matches(new Set<String>{ 'a', 'c' }));
+  }
+
+  @IsTest
+  static void givenCollectionContainingMatchable_whenArgumentIsNotACollection_thenReturnsFalse() {
+    // Arrange
+    Argument.Matchable sut = Argument.collectionContaining('b');
+
+    // Act & Assert
+    Assert.isFalse(sut.matches(null));
+    Assert.isFalse(sut.matches('not a collection'));
+    Assert.isFalse(sut.matches(42));
+  }
+
+  @IsTest
+  static void givenCollectionContainingMatchable_whenSameValue_thenMatchablesAreEqual() {
+    // Arrange & Act & Assert
+    Assert.isTrue(Argument.collectionContaining('x').equals(Argument.collectionContaining('x')));
+    Assert.isFalse(Argument.collectionContaining('x').equals(Argument.collectionContaining('y')));
+  }
+
+  @IsTest
+  static void givenHasSizeMatchable_whenListHasExpectedSize_thenReturnsTrue() {
+    // Arrange
+    Argument.Matchable sut = Argument.hasSize(3);
+
+    // Act & Assert
+    Assert.isTrue(sut.matches(new List<Object>{ 1, 2, 3 }));
+    Assert.isFalse(sut.matches(new List<Object>{ 1, 2 }));
+  }
+
+  @IsTest
+  static void givenHasSizeMatchable_whenSetHasExpectedSize_thenReturnsTrue() {
+    // Arrange
+    Argument.Matchable sut = Argument.hasSize(2);
+
+    // Act & Assert
+    Assert.isTrue(sut.matches(new Set<String>{ 'a', 'b' }));
+    Assert.isFalse(sut.matches(new Set<String>{ 'a' }));
+  }
+
+  @IsTest
+  static void givenHasSizeMatchable_whenMapHasExpectedSize_thenReturnsTrue() {
+    // Arrange
+    Argument.Matchable sut = Argument.hasSize(1);
+
+    // Act & Assert
+    Assert.isTrue(sut.matches(new Map<String, Object>{ 'key' => 'val' }));
+    Assert.isFalse(sut.matches(new Map<String, Object>()));
+  }
+
+  @IsTest
+  static void givenHasSizeMatchable_whenArgumentIsNotACollection_thenReturnsFalse() {
+    // Arrange
+    Argument.Matchable sut = Argument.hasSize(1);
+
+    // Act & Assert
+    Assert.isFalse(sut.matches(null));
+    Assert.isFalse(sut.matches('not a collection'));
+    Assert.isFalse(sut.matches(42));
+  }
+
+  @IsTest
+  static void givenHasSizeMatchable_whenSameSize_thenMatchablesAreEqual() {
+    // Arrange & Act & Assert
+    Assert.isTrue(Argument.hasSize(3).equals(Argument.hasSize(3)));
+    Assert.isFalse(Argument.hasSize(3).equals(Argument.hasSize(4)));
+  }
 }
