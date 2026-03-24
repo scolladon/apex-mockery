@@ -569,6 +569,64 @@ private class ExpectTest {
     Assert.isTrue(true, 'This assertions should be reached');
   }
 
+  @IsTest
+  static void givenMock_whenThatIsCalled_thenReturnsMockExpectableInstance() {
+    // Arrange
+    Mock mock = Mock.forType(DummyInterface.class);
+
+    // Act
+    Expect.MockExpectable result = Expect.that(mock);
+
+    // Assert
+    Assert.isNotNull(result);
+  }
+
+  @IsTest
+  static void hasNoInteractions_givenMockWithNoCallsMade_thenPasses() {
+    // Arrange
+    Mock mock = Mock.forType(DummyInterface.class);
+    mock.spyOn('methodOne');
+    FakeAsserter fakeAsserter = new FakeAsserter();
+    Expect.MockExpectable sut = Expect.that(mock, fakeAsserter);
+
+    // Act
+    sut.hasNoInteractions();
+
+    // Assert
+    Assert.isFalse(fakeAsserter.failed);
+  }
+
+  @IsTest
+  static void hasNoInteractions_givenMockWithCallsMade_thenFails() {
+    // Arrange
+    Mock mock = Mock.forType(DummyInterface.class);
+    MethodSpy spy = mock.spyOn('methodOne');
+    spy.call(new List<Type>(), new List<String>(), new List<Object>());
+    FakeAsserter fakeAsserter = new FakeAsserter();
+    Expect.MockExpectable sut = Expect.that(mock, fakeAsserter);
+
+    // Act
+    sut.hasNoInteractions();
+
+    // Assert
+    Assert.isTrue(fakeAsserter.failed);
+    Assert.isTrue(fakeAsserter.errorMessage.contains('methodOne'));
+  }
+
+  @IsTest
+  static void hasNoInteractions_givenMockWithNoSpiesRegistered_thenPasses() {
+    // Arrange
+    Mock mock = Mock.forType(DummyInterface.class);
+    FakeAsserter fakeAsserter = new FakeAsserter();
+    Expect.MockExpectable sut = Expect.that(mock, fakeAsserter);
+
+    // Act
+    sut.hasNoInteractions();
+
+    // Assert
+    Assert.isFalse(fakeAsserter.failed);
+  }
+
   class FakeErrorMessage implements Expect.ErrorMessage {
     private String message;
     FakeErrorMessage(String message) {

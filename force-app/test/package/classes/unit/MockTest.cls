@@ -144,4 +144,32 @@ private class MockTest {
     // Assert
     Assert.isNotNull(sut.stub, 'stub should be set after construction');
   }
+
+  @IsTest
+  static void givenMockWithSpies_getSpies_returnsAllRegisteredSpies() {
+    // Arrange
+    Mock sut = Mock.forType(DummyInterface.class);
+    sut.spyOn('methodOne');
+    sut.spyOn('methodTwo');
+
+    // Act
+    List<MethodSpy> spies = sut.getSpies();
+
+    // Assert
+    Assert.areEqual(2, spies.size());
+  }
+
+  @IsTest
+  static void givenMock_getSpies_returnsDefensiveCopy() {
+    // Arrange
+    Mock sut = Mock.forType(DummyInterface.class);
+    sut.spyOn('methodOne');
+
+    // Act
+    List<MethodSpy> spies = sut.getSpies();
+    spies.clear();
+
+    // Assert — internal registry not affected
+    Assert.areEqual(1, sut.getSpies().size());
+  }
 }

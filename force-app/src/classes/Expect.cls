@@ -68,6 +68,10 @@ global class Expect {
     void hasBeenCalledNthWith(Integer n, Object param1, Object param2, Object param3, Object param4, Object param5);
   }
 
+  global interface MockExpectable {
+    void hasNoInteractions();
+  }
+
   global interface ErrorMessage {
     String toString();
   }
@@ -75,6 +79,21 @@ global class Expect {
   global interface Asserter {
     void isTrue(Boolean value, ErrorMessage message);
     void isFalse(Boolean value, ErrorMessage message);
+  }
+
+  /**
+   * Starts to build assertions on a mock
+   *
+   * @param mock the Mock to assert
+   * @see        Mock
+   */
+  global static MockExpectable that(Mock mock) {
+    return that(mock, METHOD_SPY_ASSERTER);
+  }
+
+  @TestVisible
+  private static MockExpectable that(Mock mock, Asserter asserter) {
+    return new DefaultMockExpectable(mock, asserter);
   }
 
   /**
@@ -292,6 +311,26 @@ global class Expect {
         buildErrorMessage(this.spy, ErrorMessageType.NOT_NTH_CALLED_WITH, 'the ' + n + ' time with ' + args)
       );
     }
+  }
+
+  private class DefaultMockExpectable implements MockExpectable {
+    private final Mock mock;
+    private final Asserter asserter;
+
+    private DefaultMockExpectable(final Mock mock, final Asserter asserter) {
+      this.mock = mock;
+      this.asserter = asserter;
+    }
+
+    public void hasNoInteractions() {
+      for (MethodSpy spy : this.mock.getSpies()) {
+        this.asserter.isTrue(spy.getCallCount() == 0, buildNoInteractionsErrorMessage(spy));
+      }
+    }
+  }
+
+  private static ErrorMessage buildNoInteractionsErrorMessage(MethodSpy spy) {
+    return new ErrorMessageImpl(spy, ErrorMessageType.CALLED);
   }
 
   private enum ErrorMessageType {

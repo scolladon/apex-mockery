@@ -43,6 +43,10 @@ global class Mock implements System.StubProvider {
     return this.spies.get(this.getSpyKey(methodName));
   }
 
+  global List<MethodSpy> getSpies() {
+    return new List<MethodSpy>(this.spies.values());
+  }
+
   global static Mock forType(final Type aType) {
     return Mock.forType(aType, new DefaultStubBuilder());
   }
