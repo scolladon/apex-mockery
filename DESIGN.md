@@ -20,19 +20,25 @@ The library is composed of four classes that form a clean layered design.
 
 ### `Mock`
 
-Entry point and `StubProvider` implementation. Wraps `Test.createStub()` behind the `StubBuilder` interface, owns the `Map<String, MethodSpy>` that backs all spy lookups, and implements `handleMethodCall` to route runtime interceptions to the right spy. Keys are normalized to lower-case so spy lookup is case-insensitive. Provides `spyOn` (create-or-retrieve) and `getSpy` (retrieve-only) for test setup.
+Entry point and `StubProvider` implementation. Wraps `Test.createStub()` behind the `StubBuilder` interface, owns the `Map<String, MethodSpy>` that backs all spy lookups, and implements `handleMethodCall` to route runtime interceptions to the right spy. Keys are normalized to lower-case so spy lookup is case-insensitive. Provides `spyOn` (create-or-retrieve) and `getSpy` (retrieve-only) for test setup. `getSpies()` returns a defensive copy of all registered `MethodSpy` instances. `resetAll()` calls `reset()` on every registered spy without removing them. `clear()` removes all spy registrations entirely.
 
 ### `MethodSpy`
 
 Records calls via `CallLog` and dispatches them through `dispatchBehavior`. Holds two behavior containers: a `List<MatchingParamsMethodSpyConfig>` for argument-specific rules and a `BehaviorManagement` for the default rule. Both containers manage `SpyBehavior` implementations that either return a value (`ConfiguredValueBehavior`) or throw (`ConfiguredExceptionBehavior`). The `DispatchResult` wrapper distinguishes a matched result whose value is `null` from the absence of any match, which triggers a `ConfigurationException`.
 
+The `callLog` field is private; test code accesses call history through a delegation API: `getCallCount()` returns the total number of invocations; `getArguments(callIndex)` and `getLastArguments()` return the argument list for a specific call or the most recent call; `getArgument(callIndex, argIndex)` and `getLastArgument(argIndex)` retrieve a single argument by position; `getMatchingArguments(...)` returns all call argument lists whose arguments match the provided matchers. The `reset()` lifecycle method clears the call log and all configured behaviors, returning the spy to its initial state.
+
 ### `Argument`
 
 Static factory for `Matchable` instances. `ofList` is the normalization gateway: any element that already implements `Matchable` is kept as-is; anything else is wrapped in `EqualsMatchable`. The 1–5 positional `of` overloads delegate to `ofList`. `areListsEqual` compares two `Matchable` lists by object identity (used to deduplicate parameterized spy configs). `getTypeName` uses exception-message parsing to retrieve the runtime type of an arbitrary `Object`.
 
+In addition to the original `any`, `equals`, `jsonEquals`, and `ofType` matchers, `Argument` now provides composite matchers (`notNull`, `negate`, `allOf`, `anyOf`), string matchers (`stringContaining`, `stringStartingWith`, `stringEndingWith`, `stringMatching`), and collection matchers (`collectionContaining`, `hasSize`). `notNull` is a convenience shorthand for a non-null guard. `negate` wraps any `Matchable` and inverts its result. `allOf` and `anyOf` accept up to five positional `Matchable` arguments or a `List<Argument.Matchable>` and implement short-circuit evaluation. The string matchers operate on `String` arguments and return `false` for non-`String` values. `collectionContaining` works for both `List` and `Set` arguments; `hasSize` works for `List`, `Set`, and `Map` arguments.
+
 ### `Expect`
 
-Assertion DSL. `Expect.that(spy)` returns a `DefaultMethodSpyExpectable` that reads the spy's `CallLog` directly. Each assertion builds an `ErrorMessageImpl` at call time but defers its `toString()` until a failing condition is detected, keeping the happy path allocation-free. The `Asserter` interface allows tests of `Expect` itself to inject a custom assertion strategy.
+Assertion DSL. `Expect.that(spy)` returns a `DefaultMethodSpyExpectable` that reads the spy's call history through the `MethodSpy` delegation API. `Expect.that(mock)` returns a `DefaultMockExpectable` through the `MockExpectable` interface. Each assertion builds an `ErrorMessageImpl` at call time but defers its `toString()` until a failing condition is detected, keeping the happy path allocation-free. The `Asserter` interface allows tests of `Expect` itself to inject a custom assertion strategy.
+
+`hasBeenCalledNthWith(n, ...)` asserts that the nth invocation (1-based) received the specified arguments. `MockExpectable.hasNoInteractions()` asserts that no spy on the mock was ever called, iterating `mock.getSpies()` and asserting `getCallCount() == 0` on each.
 
 ## Key Design Decisions
 

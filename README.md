@@ -32,16 +32,29 @@ We want its usage to be simple, its maintainability to be easy and to provide th
       - [Parameterized configuration](#parameterized-configuration)
       - [Configuration order matters !](#configuration-order-matters-)
   - [Assert on a spy](#assert-on-a-spy)
+  - [Accessing spy call arguments](#accessing-spy-call-arguments)
   - [Arguments](#arguments)
   - [Argument matcher](#argument-matcher)
     - [Any](#any)
     - [Equal](#equal)
     - [jsonEqual](#jsonequal)
     - [ofType](#oftype)
+    - [notNull](#notnull)
+    - [negate](#negate)
+    - [Composite AND matcher](#composite-and-matcher)
+    - [Composite OR matcher](#composite-or-matcher)
+    - [collectionContaining](#collectioncontaining)
+    - [hasSize](#hassize)
+    - [stringContaining](#stringcontaining)
+    - [stringStartingWith](#stringstartingwith)
+    - [stringEndingWith](#stringendingwith)
+    - [stringMatching](#stringmatching)
     - [BYOM (Build your own matcher)](#byom-build-your-own-matcher)
+  - [Mock lifecycle](#mock-lifecycle)
   - [Recipes](#recipes)
     - [Mocking](#mocking)
     - [Asserting](#asserting)
+    - [Lifecycle](#lifecycle)
 - [Library architecture](#library-architecture)
 - [How to migrate my codebase?](#how-to-migrate-my-codebase)
   - [When implementing new feature](#when-implementing-new-feature)
@@ -494,9 +507,42 @@ Expect.that(myMethodSpy).hasBeenCalledWith(Argument.ofList(new List<Object>{Argu
 // hasBeenLastCalledWith
 Expect.that(myMethodSpy).hasBeenLastCalledWith('stringValue', Argument.any(), true, ...); // up to 5 parameters
 Expect.that(myMethodSpy).hasBeenLastCalledWith(Argument.ofList(new List<Object>{Argument.any(), Argument.any(), ... })); // for more than 5 parameters
+
+// hasBeenCalledNthWith — assert the nth invocation (1-based) used specific arguments
+Expect.that(myMethodSpy).hasBeenCalledNthWith(1, 'firstCallArg');
+Expect.that(myMethodSpy).hasBeenCalledNthWith(2, 'secondCallArg');
+
+// hasNoInteractions — assert that no spy received a call
+Expect.that(myMock).hasNoInteractions();
 ```
 
 Have a look at the [assertions recipes](force-app/recipes/classes/asserting/) to have a deeper overview of what you can do with the assertion API
+
+### Accessing spy call arguments
+
+Use the `MethodSpy` delegation API to inspect recorded call arguments directly:
+
+```java
+// Total number of calls
+Integer count = myMethodSpy.getCallCount();
+
+// Arguments from a specific call (0-based index)
+List<Object> firstCallArgs = myMethodSpy.getArguments(0);
+
+// Arguments from the last call
+List<Object> lastCallArgs = myMethodSpy.getLastArguments();
+
+// A single argument from a specific call
+Object firstArgOfFirstCall = myMethodSpy.getArgument(0, 0);
+
+// A single argument from the last call
+Object firstArgOfLastCall = myMethodSpy.getLastArgument(0);
+
+// All call argument lists whose arguments match the provided matchers
+List<List<Object>> matching = myMethodSpy.getMatchingArguments('specificValue');
+```
+
+Have a look at the [GetArguments recipe](force-app/recipes/classes/asserting/GetArguments.cls) to see this API in action
 
 ### Arguments
 
@@ -562,6 +608,89 @@ Argument.ofType(Account.getSObjectType());
 Argument.ofType(CustomType.class);
 ```
 
+#### notNull
+
+`Argument.notNull()` matches any non-null value
+
+```java
+Argument.notNull();
+```
+
+#### negate
+
+`Argument.negate(matchable)` inverts any `Matchable` — matches when the inner matcher does not
+
+```java
+Argument.negate(Argument.any());
+Argument.negate(Argument.equals('forbidden'));
+```
+
+#### Composite AND matcher
+
+`Argument.allOf(...)` — succeeds when every inner matcher succeeds (up to 5 positional or a list)
+
+```java
+Argument.allOf(Argument.notNull(), Argument.ofType('String'));
+Argument.allOf(new List<Argument.Matchable>{ Argument.notNull(), Argument.ofType('Integer') });
+```
+
+#### Composite OR matcher
+
+`Argument.anyOf(...)` — succeeds when at least one inner matcher succeeds (up to 5 positional or a list)
+
+```java
+Argument.anyOf(Argument.equals('a'), Argument.equals('b'));
+Argument.anyOf(new List<Argument.Matchable>{ Argument.equals('x'), Argument.equals('y') });
+```
+
+#### collectionContaining
+
+`Argument.collectionContaining(value)` matches a `List` or `Set` that contains the given value
+
+```java
+Argument.collectionContaining('value');
+```
+
+#### hasSize
+
+`Argument.hasSize(size)` matches a `List`, `Set`, or `Map` whose size equals the given value
+
+```java
+Argument.hasSize(3);
+```
+
+#### stringContaining
+
+`Argument.stringContaining(substring)` matches a `String` that contains the given substring
+
+```java
+Argument.stringContaining('ell');
+```
+
+#### stringStartingWith
+
+`Argument.stringStartingWith(prefix)` matches a `String` that starts with the given prefix
+
+```java
+Argument.stringStartingWith('hel');
+```
+
+#### stringEndingWith
+
+`Argument.stringEndingWith(suffix)` matches a `String` that ends with the given suffix
+
+```java
+Argument.stringEndingWith('rld');
+```
+
+#### stringMatching
+
+`Argument.stringMatching(regex)` matches a `String` against the given regular expression
+
+```java
+Argument.stringMatching('\\d+');
+```
+
 #### BYOM (Build your own matcher)
 
 Use the `Argument.Matchable` interface and then use it with `Argument` APIs
@@ -593,6 +722,32 @@ List<Argument.Matchable> args = Argument.of(new MyMatchable(), ...otherArguments
 Implements the `public Boolean equals(Object obj)` method on your custom matchable so we can compare list of arguments
 
 Have a look at the [overview recipes](force-app/recipes/classes/ApexMockeryOverview.cls) to have a deeper overview of what you can do with the library
+
+### Mock lifecycle
+
+Use `reset()` on a spy to clear its call history and all configured behaviors, returning it to its initial state:
+
+```java
+planDeliverySpy.reset();
+Expect.that(planDeliverySpy).hasNotBeenCalled();
+```
+
+Use `resetAll()` on a mock to reset every registered spy without removing the registrations:
+
+```java
+deliveryServiceMock.resetAll();
+// Spy registrations remain intact
+Assert.isNotNull(deliveryServiceMock.getSpy('planDelivery'));
+```
+
+Use `clear()` on a mock to remove all spy registrations entirely:
+
+```java
+deliveryServiceMock.clear();
+Assert.isNull(deliveryServiceMock.getSpy('planDelivery'));
+```
+
+Have a look at the [lifecycle recipes](force-app/recipes/classes/lifecycle/) to see these APIs in action
 
 ### Recipes
 
@@ -628,8 +783,17 @@ It contains one classe for each use cases the library covers
 - [HasBeenCalledWithCustomMatchable](force-app/recipes/classes/asserting/HasBeenCalledWithCustomMatchable.cls): spy called with custom matcher
 - [HasBeenCalledWithJSONMatchable](force-app/recipes/classes/asserting/HasBeenCalledWithJSONMatchable.cls): spy called with JSON matcher
 - [HasBeenCalledWithTypeMatchable](force-app/recipes/classes/asserting/HasBeenCalledWithTypeMatchable.cls): spy called with type matcher
+- [HasBeenCalledNthWith](force-app/recipes/classes/asserting/HasBeenCalledNthWith.cls): assert the nth invocation used specific arguments
 - [HasBeenLastCalledWith](force-app/recipes/classes/asserting/HasBeenLastCalledWith.cls): spy last called with equal matcher
+- [HasNoInteractions](force-app/recipes/classes/asserting/HasNoInteractions.cls): assert no spy received any invocation
 - [HasNotBeenCalled](force-app/recipes/classes/asserting/HasNotBeenCalled.cls): spy not called
+- [GetArguments](force-app/recipes/classes/asserting/GetArguments.cls): access recorded call arguments from a spy
+
+#### Lifecycle
+
+- [SpyReset](force-app/recipes/classes/lifecycle/SpyReset.cls): reset a spy to clear call history and configuration
+- [MockResetAll](force-app/recipes/classes/lifecycle/MockResetAll.cls): reset all spies on a mock while keeping registrations
+- [MockClear](force-app/recipes/classes/lifecycle/MockClear.cls): remove all spy registrations from a mock
 
 ## Library architecture
 

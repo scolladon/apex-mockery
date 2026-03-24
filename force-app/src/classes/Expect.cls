@@ -272,45 +272,6 @@ global class Expect {
         buildErrorMessage(this.spy, ErrorMessageType.NOT_NTH_CALLED_WITH, 'the ' + n + ' time with ' + args)
       );
     }
-
-    public void hasBeenCalledNthWith(final Integer n) {
-      this.hasBeenCalledNthWithArguments(n, Argument.empty());
-    }
-
-    public void hasBeenCalledNthWith(final Integer n, final Object arg) {
-      this.hasBeenCalledNthWithArguments(n, (arg instanceof List<Argument.Matchable>) ? (List<Argument.Matchable>) arg : Argument.of(arg));
-    }
-
-    public void hasBeenCalledNthWith(final Integer n, final Object arg1, final Object arg2) {
-      this.hasBeenCalledNthWithArguments(n, Argument.of(arg1, arg2));
-    }
-
-    public void hasBeenCalledNthWith(final Integer n, final Object arg1, final Object arg2, final Object arg3) {
-      this.hasBeenCalledNthWithArguments(n, Argument.of(arg1, arg2, arg3));
-    }
-
-    public void hasBeenCalledNthWith(final Integer n, final Object arg1, final Object arg2, final Object arg3, final Object arg4) {
-      this.hasBeenCalledNthWithArguments(n, Argument.of(arg1, arg2, arg3, arg4));
-    }
-
-    public void hasBeenCalledNthWith(final Integer n, final Object arg1, final Object arg2, final Object arg3, final Object arg4, final Object arg5) {
-      this.hasBeenCalledNthWithArguments(n, Argument.of(arg1, arg2, arg3, arg4, arg5));
-    }
-
-    private void hasBeenCalledNthWithArguments(final Integer n, final List<Argument.Matchable> args) {
-      if (n < 1) {
-        throw new IllegalArgumentException('n must be >= 1, got: ' + n);
-      }
-      final Integer callCount = this.spy.getCallCount();
-      if (n > callCount) {
-        this.asserter.isTrue(false, buildErrorMessage(this.spy, ErrorMessageType.CALLED_FEWER_TIMES, callCount + ' time' + (callCount == 1 ? '' : 's')));
-        return;
-      }
-      this.asserter.isTrue(
-        Argument.matches(args, this.spy.getArguments(n - 1)),
-        buildErrorMessage(this.spy, ErrorMessageType.NOT_NTH_CALLED_WITH, 'the ' + n + ' time with ' + args)
-      );
-    }
   }
 
   private class DefaultMockExpectable implements MockExpectable {

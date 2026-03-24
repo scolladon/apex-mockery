@@ -13,7 +13,7 @@
     "build": "wireit",
     "lint": "npm run lint:apex ; npm run lint:doc",
     "lint:apex": "sf scanner run --verbose --target 'force-app/**/*.cls' --format table --category 'apex-mockery' --engine pmd",
-    "lint:doc": "write-good README.md --parse",
+    "lint:doc": "write-good README.md --parse --no-tooWordy",
     "postinstall": "./postInstall.sh",
     "prettier": "prettier --write \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
     "prettier:verify": "prettier --list-different \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
@@ -58,7 +58,7 @@
       "prettier --write"
     ],
     "README.md": [
-      "write-good --parse"
+      "write-good --parse --no-tooWordy"
     ]
   }
 }

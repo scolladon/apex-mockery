@@ -30,7 +30,7 @@ npm install
 ### 3) Build application
 
 ```bash
-sf project deploy start
+npm run build
 ```
 
 Rebuild every time you made a change in the source and you need to test locally
@@ -43,10 +43,14 @@ When developing, use apex unit testing to provide test coverage for new function
 
 ```bash
 # just run test
-npm run test
+npm test
 ```
 
 To execute a particular test, use the sfdx command directly
+
+```bash
+sf apex run test --class-names <ClassName> --result-format human --synchronous
+```
 
 ## Editor Configurations
 
