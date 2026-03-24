@@ -172,4 +172,62 @@ private class MockTest {
     // Assert — internal registry not affected
     Assert.areEqual(1, sut.getSpies().size());
   }
+
+  @IsTest
+  static void givenMockWithCalledSpies_whenResetAll_thenAllCallLogsAreCleared() {
+    // Arrange
+    Mock sut = Mock.forType(DummyInterface.class);
+    MethodSpy spy = sut.spyOn('methodOne');
+    spy.call(new List<Type>(), new List<String>(), new List<Object>());
+    Assert.areEqual(1, spy.getCallCount());
+
+    // Act
+    sut.resetAll();
+
+    // Assert
+    Assert.areEqual(0, spy.getCallCount());
+  }
+
+  @IsTest
+  static void givenMockWithSpies_whenResetAll_thenSpyRegistrationsArePreserved() {
+    // Arrange
+    Mock sut = Mock.forType(DummyInterface.class);
+    sut.spyOn('methodOne');
+
+    // Act
+    sut.resetAll();
+
+    // Assert — spy still registered
+    Assert.isNotNull(sut.getSpy('methodOne'));
+  }
+
+  @IsTest
+  static void givenMockWithSpies_whenClear_thenAllSpyRegistrationsAreRemoved() {
+    // Arrange
+    Mock sut = Mock.forType(DummyInterface.class);
+    sut.spyOn('methodOne');
+    sut.spyOn('methodTwo');
+
+    // Act
+    sut.clear();
+
+    // Assert
+    Assert.isNull(sut.getSpy('methodOne'));
+    Assert.isNull(sut.getSpy('methodTwo'));
+  }
+
+  @IsTest
+  static void givenMock_afterClear_spyOnCreatesNewSpies() {
+    // Arrange
+    Mock sut = Mock.forType(DummyInterface.class);
+    sut.spyOn('methodOne');
+    sut.clear();
+
+    // Act
+    MethodSpy freshSpy = sut.spyOn('methodOne');
+
+    // Assert
+    Assert.isNotNull(freshSpy);
+    Assert.areEqual(0, freshSpy.getCallCount());
+  }
 }

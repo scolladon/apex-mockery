@@ -893,4 +893,61 @@ private class MethodSpyTest {
       Assert.isTrue(ex.getMessage().contains('No calls recorded'));
     }
   }
+
+  @IsTest
+  static void givenConfiguredSpy_whenReset_thenCallLogIsCleared() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+    sut.call(new List<Type>(), new List<String>(), new List<Object>());
+    Assert.areEqual(1, sut.getCallCount());
+
+    // Act
+    sut.reset();
+
+    // Assert
+    Assert.areEqual(0, sut.getCallCount());
+  }
+
+  @IsTest
+  static void givenSpyConfiguredToReturn_whenReset_thenDefaultBehaviorIsCleared() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+    sut.returns('value');
+
+    // Act
+    sut.reset();
+
+    // Assert — after reset, spy returns null (unconfigured)
+    Object result = sut.call(new List<Type>(), new List<String>(), new List<Object>());
+    Assert.isNull(result);
+  }
+
+  @IsTest
+  static void givenSpyConfiguredWithWhenCalledWith_whenReset_thenParameterizedConfigurationsAreCleared() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+    sut.whenCalledWith('expected').thenReturn('result');
+    sut.returns('fallback');
+
+    // Act
+    sut.reset();
+
+    // Assert — after reset, no configuration exception on unmatched call
+    Object result = sut.call(new List<Type>{ String.class }, new List<String>{ 'p' }, new List<Object>{ 'unexpected' });
+    Assert.isNull(result);
+  }
+
+  @IsTest
+  static void givenSpyWithOnceBehaviors_whenReset_thenOnceBehaviorsAreCleared() {
+    // Arrange
+    MethodSpy sut = new MethodSpy('method');
+    sut.returnsOnce('once');
+
+    // Act
+    sut.reset();
+
+    // Assert — no configured once behavior
+    Object result = sut.call(new List<Type>(), new List<String>(), new List<Object>());
+    Assert.isNull(result);
+  }
 }

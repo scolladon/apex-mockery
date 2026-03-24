@@ -47,6 +47,16 @@ global class Mock implements System.StubProvider {
     return new List<MethodSpy>(this.spies.values());
   }
 
+  global void resetAll() {
+    for (MethodSpy spy : this.spies.values()) {
+      spy.reset();
+    }
+  }
+
+  global void clear() {
+    this.spies.clear();
+  }
+
   global static Mock forType(final Type aType) {
     return Mock.forType(aType, new DefaultStubBuilder());
   }

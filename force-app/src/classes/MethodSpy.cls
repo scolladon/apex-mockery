@@ -136,6 +136,12 @@ global class MethodSpy {
     this.defaultBehaviorManager.configure(new ConfiguredExceptionBehavior(exceptionToThrowTimes, '.thenThrowOnce'), times);
   }
 
+  global void reset() {
+    this.callLog.clear();
+    this.matchingBehaviorManagers.clear();
+    this.defaultBehaviorManager.reset();
+  }
+
   global MethodSpyCall whenCalledWith() {
     return this.whenCalledWithArguments(Argument.empty());
   }
@@ -197,6 +203,10 @@ global class MethodSpy {
 
     public List<Object> getLast() {
       return this.size() > 0 ? this.get(this.size() - 1) : null;
+    }
+
+    public void clear() {
+      this.callArguments.clear();
     }
   }
 
@@ -436,6 +446,11 @@ global class MethodSpy {
     public Object pollSpyBehavior(final List<Object> args) {
       final SpyBehavior behaviorToApply = this.hasConfiguredOnceBehavior() ? this.onceBehaviors.remove(0) : this.generalBehavior;
       return behaviorToApply?.execute(args);
+    }
+
+    public void reset() {
+      this.onceBehaviors.clear();
+      this.generalBehavior = null;
     }
 
     public override String toString() {
